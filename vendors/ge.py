@@ -73,7 +73,8 @@ def insert_into_db(fwdata):
 #download firmware image
 def download_file(data):
     logger.debug('<module GE> -> Downloading Firmware <%s>', data['data0'])
-    local_uri = os.path.abspath(DATA['file_paths']['download_files_path'] + "/" + data['data0'])
+    local_uri = data["file_path_to_save"]
+    print(data)
     req_data = {
         'Fwfileid': 'FILE',
         'Fwfilename': data['data0'],
@@ -106,14 +107,14 @@ def download_file(data):
             with open(data['file_path_to_save'], "wb") as fp_:
                 fp_.write(resp.content)
             if data['is_file_download'] is False:
-                req_data['Checksum'] = get_hash_value(local_uri)
+                req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
                 insert_into_db(req_data)
         else:
-            logger.info("<%s> -> Downloading Firmware <%s>", data['url'], data['file_path_to_save'])
+            logger.info("<%s> -> Downloading Firmware <%s>", data['main_url'], data['file_path_to_save'])
             options = webdriver.ChromeOptions()
             prefs = {"download.default_directory" : data['file_path_to_save']}
             options.add_argument("headless")
-            options.add_experimental_option("prefs",prefs)
+            options.add_experimental_option("prefs", prefs)
             driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
             # Go to your page url
             try:
@@ -128,9 +129,9 @@ def download_file(data):
                 time.sleep(10)
                 driver.close()
                 if data['is_file_download'] is False:
-                    local_uri_ = os.path.abspath(DATA['file_paths']['download_files_path'] + "/" + data['data0'] + "/" + data['data0'])
-                    req_data['Fwfilelinktolocal'] = local_uri_
-                    req_data['Checksum'] = get_hash_value(local_uri_)
+                    print(local_uri)
+                    if os.path.isfile(local_uri):
+                        req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
                     insert_into_db(req_data)
             except Exception as er_:
                 logger.error("<module GE> Error in downloading: %s", data['url'])
@@ -141,7 +142,7 @@ def download_file(data):
 
 #parse html and start clean according to our need
 def scraper_parse(url, base_url):
-    dest = os.path.join(os.getcwd(), DATA['file_paths']['download_files_path'])
+    dest = os.path.join(parent_dir, DATA['file_paths']['download_files_path'])
     try:
         if not os.path.isdir(dest):
             os.mkdir(dest)
@@ -162,9 +163,7 @@ def scraper_parse(url, base_url):
                 for item_temp in items_temp:
                     if items_temp.index(item_temp) == 0:
                         link = item_temp.findChild("a").get("href")
-                        if link == "javascript:;":
-                            click = item_temp.findChild("a").get("onclick")
-                        file_path = os.path.join(dest, item_temp.get_text())
+                        file_path = ''
                         arg_data = {
                             'url': base_url + link,
                             'file_path_to_save': file_path,
@@ -178,7 +177,15 @@ def scraper_parse(url, base_url):
                             'is_file_download': False,
                             'folder': DATA['file_paths']['download_files_path']
                         }
-                        download_file(arg_data)
+                        if link == "javascript:;":
+                            click = item_temp.findChild("a").get("onclick")
+                            file_path = os.path.join(parent_dir, DATA['file_paths']['download_files_path'], item_temp.get_text(), item_temp.get_text())
+                            arg_data['file_path_to_save'] = file_path
+                            download_file(arg_data)
+                        else:
+                            file_path = os.path.join(parent_dir, DATA['file_paths']['download_files_path'], item_temp.get_text())
+                            arg_data['file_path_to_save'] = file_path
+                            download_file(arg_data)
                     sub_data.append(item_temp.get_text())
                 data.append(sub_data)
 
