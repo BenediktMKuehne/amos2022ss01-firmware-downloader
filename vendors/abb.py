@@ -4,16 +4,22 @@ import json
 import math
 import uuid
 from urllib.parse import urlparse
+import inspect
 import requests
 from utils.database import Database
 from utils.Logs import get_logger
 from utils.modules_check import vendor_field
+from utils.metadata_extractor import get_hash_value
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+
 
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 MOD_NAME = "abb"
 logger = get_logger("vendors.abb")
-CONFIG_PATH = os.path.join("config", "config.json")
+CONFIG_PATH = os.path.join(parent_dir, "config", "config.json")
 DATA={}
 URL = ''
 with open(CONFIG_PATH, "rb") as fp:
@@ -27,6 +33,7 @@ with open(CONFIG_PATH, "rb") as fp:
         # print(' url')
         URL = vendor_field('abb', 'url')
 
+
 def download_single_file(file_metadata):
     url = file_metadata["Fwdownlink"]
     logger.info("Donwloading %s ", url)
@@ -39,7 +46,7 @@ def download_single_file(file_metadata):
     old_file_name_list[-1] = file_name # updated filename
     file_metadata["Fwfilelinktolocal"] = "/".join(old_file_name_list)
     file_path_to_save = os.path.abspath(DATA['file_paths']['download_files_path'] + "/" + file_metadata["Fwfilelinktolocal"])
-    print(file_path_to_save)
+    file_metadata["Fwfilelinktolocal"] = file_path_to_save
     logger.info("File saved at %s", file_path_to_save)
     with open(file_path_to_save, "wb") as fp_:
         fp_.write(resp.content)
@@ -57,8 +64,8 @@ def download_list_files(metadata, max_files=-1): #max_files -1 means download al
 def write_metadata_to_db(metadata):
     logger.info("Going to write metadata in db")
     db_ = Database()
-    print(os.listdir('./'))
     for fw_ in metadata:
+        fw_["Checksum"] = get_hash_value(fw_["Fwfilelinktolocal"])
         db_.insert_data(dbdictcarrier=fw_)
 
 def se_get_total_firmware_count(url):
@@ -104,24 +111,24 @@ def transform_metadata_format_ours(raw_data, local_storage_dir="."):
     fw_mod_list = []
     for fw_ in raw_data:
         fw_mod = {
-	    'Fwfileid': '',
-        'Fwfilename': fw_["metadata"]["identification"]["documentNumber"],
-	    'Manufacturer': 'abb',
-	    'Modelname': fw_["metadata"]["identification"]["documentNumber"],
-	    'Version': fw_["metadata"]["identification"]["revision"],
-	    'Type': fw_["metadata"]["documentKind"],
-	    'Releasedate': fw_["metadata"]["publishedDate"],
-	    'Checksum': '',
-	    'Embatested': '',
-	    'Embalinktoreport': '',
-	    'Embarklinktoreport': '',
-        'Fwdownlink': fw_["metadata"]["currentRevisionUrl"],
-        'Fwfilelinktolocal': os.path.join(local_storage_dir, str(uuid.uuid4()) + "." + fw_["metadata"]["fileSuffix"]), #setting temp filename as of now
-        'Fwadddata': json.dumps({"summary": fw_["metadata"]["summary"].replace("'","")}),
-        'Uploadedonembark': '',
-        'Embarkfileid': '',
-        'Startedanalysisonembark': ''
-	}
+            'Fwfileid': '',
+            'Fwfilename': fw_["metadata"]["identification"]["documentNumber"],
+            'Manufacturer': 'abb',
+            'Modelname': fw_["metadata"]["identification"]["documentNumber"],
+            'Version': fw_["metadata"]["identification"]["revision"],
+            'Type': fw_["metadata"]["documentKind"],
+            'Releasedate': fw_["metadata"]["publishedDate"],
+            'Checksum': '',
+            'Embatested': '',
+            'Embalinktoreport': '',
+            'Embarklinktoreport': '',
+            'Fwdownlink': fw_["metadata"]["currentRevisionUrl"],
+            'Fwfilelinktolocal': os.path.join(local_storage_dir, str(uuid.uuid4()) + "." + fw_["metadata"]["fileSuffix"]), #setting temp filename as of now
+            'Fwadddata': json.dumps({"summary": fw_["metadata"]["summary"].replace("'","")}),
+            'Uploadedonembark': '',
+            'Embarkfileid': '',
+            'Startedanalysisonembark': ''
+	    }
         fw_mod_list.append(fw_mod)
     return fw_mod_list
 
@@ -138,6 +145,7 @@ def main():
     logger.info("Printing first transformed document metadata")
     logger.info(json.dumps(metadata[0], indent=4))
     download_list_files(metadata)
+
 
 if __name__ == "__main__":
     main()

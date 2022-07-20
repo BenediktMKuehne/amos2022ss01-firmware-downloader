@@ -3,12 +3,17 @@ import sys
 import unittest
 import sqlite3
 import json
+import inspect
 from vendors.ge import download_file
 from utils.check_duplicates import check_duplicates
 
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 sys.path.append(os.path.abspath(os.path.join('.', '')))
+
 DB_NAME = "firmwaredatabase.db"
-CONFIG_PATH = os.path.join("config", "config.json")
+CONFIG_PATH = os.path.join("../config", "config.json")
 DATA={}
 with open(CONFIG_PATH, "rb") as fp:
     DATA = json.load(fp)
@@ -32,7 +37,7 @@ class GEUnitTest(unittest.TestCase):
         folder = DATA['file_paths']['download_test_files_path']
         file_name = 'orbit-mib-9_2_2'
         gt_url = "https://www.gegridsolutions.com/communications/mds/software.asp?directory=Orbit_MCR&file=orbit%2Dmib%2D9%5F2%5F2%2Ezip"
-        dest = os.path.join(os.getcwd(), folder)
+        dest = os.path.join(parent_dir, folder)
         try:
             if not os.path.isdir(dest):
                 os.mkdir(dest)
@@ -45,7 +50,7 @@ class GEUnitTest(unittest.TestCase):
             'Modelname': file_name,
             'Version': '',
 	    }
-
+        print(gt_file_path)
         if os.path.isfile(gt_file_path) is False and check_duplicates(data, DB_NAME) is True:
             arg_data = {
                 'url': gt_url,
@@ -85,7 +90,8 @@ class GEUnitTest(unittest.TestCase):
         folder = DATA['file_paths']['download_test_files_path']
         file_name = 'SDx-6_4_8'
         gt_url = "https://www.gegridsolutions.com/communications/mds/software.asp?directory=SD_Series"
-        dest = os.path.join(os.getcwd(), folder)
+        dest = os.path.join(parent_dir, folder)
+
         try:
             if not os.path.isdir(dest):
                 os.mkdir(dest)
