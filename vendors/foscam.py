@@ -14,8 +14,10 @@ from selenium.webdriver.common.by import By
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import metadata_extractor
 from utils.modules_check import vendor_field
 from utils.Logs import get_logger
+
 logger = get_logger("vendors.foscam")
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 
@@ -149,8 +151,18 @@ class FoscamHomeSecurity:
                         brow_cookies = self.clean_cookies(driver.get_cookies())
                         file_name = self.url_call_file_name(api_url, brow_cookies)
                         local_file_location = fr"{self.path}\{self.down_file_path}\Foscam\{str(f'{file_name}')}"
-                        if not os.path.isfile(local_file_location.replace("\\", "/")) and file_name is not None:
-                            wget.download(down_link, local_file_location)
+                        check_path = r"{}\{}\Foscam".format(self.path, self.down_file_path).replace('\\', '/')
+                        if not os.path.exists(check_path):
+                            print(os.path.isfile(check_path))
+                            os.mkdir(check_path)
+
+                        if not os.path.isfile(str(local_file_location.replace("\\", "/"))) and file_name is not None:
+                            wget.download(down_link, str(local_file_location.replace("\\", "/")))
+
+                        while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
+                                file_name is not None:
+                            time.sleep(10)
+
                         dbdict_carrier = {}
                         db_used = Database()
                         for key in self.dbdict:
@@ -164,8 +176,17 @@ class FoscamHomeSecurity:
                                 dbdict_carrier[key] = version
                             elif key == "Releasedate":
                                 dbdict_carrier[key] = build_date
+                            elif key == "Filesize":
+                                dbdict_carrier[key] = size
+                            elif key == "Lasteditdate":
+                                if local_file_location.split("\\")[-1] is not None and file_name is not None:
+                                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/"))
+                                                                             )["Last Edit Date"]
+                                else:
+                                    dbdict_carrier[key] = None
+
                             elif key == "Fwadddata":
-                                dbdict_carrier[key] = add_desc
+                                dbdict_carrier[key] = fr'{add_desc}'
                             elif key == "Fwdownlink":
                                 dbdict_carrier[key] = down_link
                             elif key == "Fwfilelinktolocal":
@@ -174,9 +195,11 @@ class FoscamHomeSecurity:
                                 if local_file_location.split("\\")[-1] is not None and file_name is not None:
                                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                                 else:
-                                    dbdict_carrier[key] = ''
+                                    dbdict_carrier[key] = None
+
                             else:
-                                dbdict_carrier[key] = ''
+                                dbdict_carrier[key] = None
+
                         db_used.insert_data(dbdict_carrier)
             except NoSuchElementException:
                 dbdict_carrier = {}
@@ -188,7 +211,7 @@ class FoscamHomeSecurity:
                         dbdict_carrier[key] = fr"The Webpage doesn't contain any Firmware downloads,\
                         So this page is skipped, The Firmware crawled page is: {href_url}"
                     else:
-                        dbdict_carrier[key] = ''
+                        dbdict_carrier[key] = None
                 db_used.insert_data(dbdict_carrier)
 
     def close_browser(self):

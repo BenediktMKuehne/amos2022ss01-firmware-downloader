@@ -100,6 +100,11 @@ class Honeywell:
         driver.maximize_window()
 
     @staticmethod
+    def wait_for_down(in_local_file_location):
+        while not os.path.isfile(in_local_file_location):
+            time.sleep(10)
+
+    @staticmethod
     def down_ele_click(loc_loc,  element):
         # A fn for duplication Check for not to download the files if files exist in local machine
         if not os.path.isfile(loc_loc.replace("\\", "/")):
@@ -147,7 +152,7 @@ class Honeywell:
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, file_name)
             # Duplication Check for not to download the files if files exist in local machine
             self.down_ele_click(local_file_location, download_element)
-            time.sleep(20)
+            self.wait_for_down(local_file_location)
             dbdict_carrier = {}
             db_used = Database()
             for key in self.dbdict:
@@ -164,7 +169,8 @@ class Honeywell:
                 elif key == "Filesize":
                     dbdict_carrier[key] = file_size
                 elif key == "Lasteditdate":
-                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))["Last Edit Date"]
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                        "Last Edit Date"]
                 elif key == "Fwdownlink":
                     dbdict_carrier[key] = download_link
                 elif key == "Fwfilelinktolocal":
@@ -172,7 +178,7 @@ class Honeywell:
                 elif key == "Checksum":
                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                 else:
-                    dbdict_carrier[key] = ''
+                    dbdict_carrier[key] = None
             db_used.insert_data(dbdict_carrier)
         driver.back()
 
@@ -237,6 +243,7 @@ class Honeywell:
                 with open(local_file_location, 'wb') as zip_file:
                     zip_file.write(response.content)
             print(cfile_name, crow_down_link, crow_add_desc, sep='\n')
+            self.wait_for_down(local_file_location)
             dbdict_carrier = {}
             db_used = Database()
             for key in self.dbdict:
@@ -244,6 +251,12 @@ class Honeywell:
                     dbdict_carrier[key] = r'{}'.format(cfile_name)
                 elif key == "Manufacturer":
                     dbdict_carrier[key] = "Honeywell"
+                elif key == "Filesize":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                            "File Size"]
+                elif key == "Lasteditdate":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                        "Last Edit Date"]
                 elif key == "Fwdownlink":
                     dbdict_carrier[key] = r'{}'.format(crow_down_link)
                 elif key == "Fwfilelinktolocal":
@@ -253,7 +266,7 @@ class Honeywell:
                 elif key == "Checksum":
                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                 else:
-                    dbdict_carrier[key] = ''
+                    dbdict_carrier[key] = None
             db_used.insert_data(dbdict_carrier)
 
     def productivity(self):
@@ -473,6 +486,7 @@ class Honeywell:
                 local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path,
                                                                    download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element)
+                self.wait_for_down(local_file_location)
                 dbdict_carrier = {}
                 db_used = Database()
                 for key in self.dbdict:
@@ -484,6 +498,12 @@ class Honeywell:
                         dbdict_carrier[key] = r'{}'.format(model_name)
                     elif key == "Version":
                         dbdict_carrier[key] = r'{}'.format(version)
+                    elif key == "Filesize":
+                        dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                            "File Size"]
+                    elif key == "Lasteditdate":
+                        dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                            "Last Edit Date"]
                     elif key == "Fwdownlink":
                         dbdict_carrier[key] = download_link
                     elif key == "Fwfilelinktolocal":
@@ -491,7 +511,7 @@ class Honeywell:
                     elif key == "Checksum":
                         dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                     else:
-                        dbdict_carrier[key] = ''
+                        dbdict_carrier[key] = None
                 db_used.insert_data(dbdict_carrier)
             time.sleep(10)
             if driver.find_element(By.XPATH, "//*[text()='Next']").tag_name == "span":
@@ -511,6 +531,6 @@ if __name__ == '__main__':
     hw = Honeywell()
     hw.homepage()
     hw.advanced_sensing_tech()
-    # hw.gas()
-    # hw.productivity()
+    hw.gas()
+    hw.productivity()
     hw.close_browser()

@@ -2,6 +2,7 @@ import os
 import sqlite3
 import uuid
 from utils.Logs import get_logger
+
 logger = get_logger("utils.database")
 
 
@@ -86,15 +87,26 @@ class Database:
                 dbdict[key] = dbdictcarrier[key]
                 logger.info('The %s is updated with the Key: %s and Value: %s.', self.dbname, key, dbdict[key])
 
-            if dbdict['Fwdownlink']:
+            if dbdict['Fwdownlink'] != '':
+                print(dbdict['Fwdownlink'])
                 uuid_id = str(uuid.uuid5(uuid.NAMESPACE_URL, dbdict['Fwdownlink']))
+                print(uuid_id)
             else:
+                print(dbdict['Fwdownlink'])
                 uuid_id = str(uuid.uuid1())
+                print(uuid_id)
+
+            if not os.path.exists('../utils/database_txt_file'):
+                print(os.path.exists('../utils/database_txt_file'))
+                os.mkdir('../utils/database_txt_file/')
+                with open('../utils/database_txt_file/uuid_generated.txt', 'w', encoding="utf-8") as uuid_file:
+                    uuid_file.write('This file contains the UUID generated from download links & will be stored in DB.'
+                                    + '\n')
 
             with open('../utils/database_txt_file/uuid_generated.txt', 'r', encoding="utf-8") as uuid_read:
                 data = uuid_read.read()
             with open('../utils/database_txt_file/uuid_generated.txt', 'a', encoding="utf-8") as uuid_file:
-                print(data.split('\n'))
+                # print(data.split('\n'))
                 if uuid_id not in data.split('\n'):
                     logger.info("The data is not present with respect to Fwfileid so, the data will be added into DB")
                     uuid_file.write(str(uuid_id + '\n'))
