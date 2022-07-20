@@ -30,17 +30,12 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it ,,
       - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
           cache: 'pip'
-      - name: unit_tests dir
-        run: ls -R
-        working-directory: ${{env.working-directory}}
-      - name: change dir
-        run:  |
-              pwd
-              cd ./unit_tests*
       - name: Install dependencies
         run: |
             python3 -m pip install --upgrade pip
