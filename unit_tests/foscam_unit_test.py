@@ -22,7 +22,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
-
+sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 class FoscamHomeSecurityTest(unittest.TestCase):
 
