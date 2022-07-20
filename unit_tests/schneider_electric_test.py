@@ -3,13 +3,16 @@ import sys
 import sqlite3
 import unittest
 import json
+import inspect
 from vendors.schneider_electric import download_single_file, write_metadata_to_db
 from utils.check_duplicates import Database
-
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 DB_NAME = os.path.join(os.getcwd(), "schneiderelectrictempfirmware.db")
-CONFIG_PATH = os.path.join("config", "config.json")
+CONFIG_PATH = os.path.join(parent_dir, "config", "config.json")
 DATA={}
 with open(CONFIG_PATH, "rb") as fp:
     DATA = json.load(fp)
