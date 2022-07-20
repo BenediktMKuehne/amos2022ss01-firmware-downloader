@@ -186,7 +186,7 @@ class FoscamHomeSecurity:
                                     dbdict_carrier[key] = None
 
                             elif key == "Fwadddata":
-                                dbdict_carrier[key] = fr'{add_desc}'
+                                dbdict_carrier[key] = r'{}'.format(str(add_desc))
                             elif key == "Fwdownlink":
                                 dbdict_carrier[key] = down_link
                             elif key == "Fwfilelinktolocal":
