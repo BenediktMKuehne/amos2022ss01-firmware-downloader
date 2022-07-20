@@ -50,4 +50,4 @@ jobs:
         run: |
           cd ..
           pipenv install --dev
-          pytest unit_tests*
+          pytest
