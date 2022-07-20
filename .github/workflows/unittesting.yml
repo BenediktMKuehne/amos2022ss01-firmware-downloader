@@ -34,7 +34,9 @@ jobs:
         run:  |
               pwd
               cd ./unit_tests*
-
+      with:
+        architecture: x64
+        cache: 'pip'
       - name: Install dependencies
         run: |
             python3 -m pip install --upgrade pip
@@ -45,4 +47,5 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a Unit Test modules
         run: |
+          pipenv install --dev
           pytest unit_tests*
