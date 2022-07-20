@@ -48,7 +48,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a Unit Test modules
         run: |
-          cd ..
+          cd home/runner/work/amos2022ss01-firmware-downloader/
           pwd
           pipenv install --dev
           export PYTHONPATH=home/runner/work/amos2022ss01-firmware-downloader/
