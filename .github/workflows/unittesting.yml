@@ -11,7 +11,6 @@ on:
   pull_request:
     branches:
       - '**'
-      -
       # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -37,5 +36,5 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a Unit Test modules
         run: |
-          export PYTHONPATH=$PYTHONPATH:$PWD
-          py.test unit_tests/*
+          export PYTHONPATH=$PYTHONPATH:$./amos2022ss01-firmware-downloader/unit_tests/
+          pytest ./amos2022ss01-firmware-downloader/unit_tests*
