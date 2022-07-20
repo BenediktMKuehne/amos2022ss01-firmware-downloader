@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import uuid
 from utils.Logs import get_logger
 logger = get_logger("utils.database")
 
@@ -18,6 +19,8 @@ class Database:
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -46,6 +49,8 @@ class Database:
                             Version TEXT NOT NULL,
                             Type TEXT NOT NULL,
                             Releasedate TEXT,
+                            Filesize TEXT,
+                            Lasteditdate TEXT,
                             Checksum TEXT,
                             Embatested TEXT NOT NULL,
                             Embalinktoreport TEXT,
@@ -76,27 +81,38 @@ class Database:
             logger.info('Connection details: %s.', conn)
             curs = conn.cursor()
             logger.info('A cursor is established on %s, with the details: %s.', self.dbname, curs)
-            select_command = "select * from FWDB"
-            curs.execute(select_command)
-            logger.info('The table FWDB is selected in the %s with the command: %s.', self.dbname, select_command)
-            records = len(curs.fetchall())
             dbdict = self.dbdict
             for key in dbdict:
                 dbdict[key] = dbdictcarrier[key]
                 logger.info('The %s is updated with the Key: %s and Value: %s.', self.dbname, key, dbdict[key])
-            dbdict['Fwfileid'] = f'FILE_{records + 1}'
-            logger.info("The db is updated with the Fwfileid. as %s.", dbdict['Fwfileid'])
-            # Currently, the local firmware id is represented as file extended by _ in increase by 1
-            insert_command = f'''INSERT INTO FWDB('{"','".join(map(str, dbdict.keys()))}')
-                                                    VALUES('{"','".join(map(str, dbdict.values()))}')'''
-            curs.execute(insert_command)
-            logger.info('The db is inserted with the command %s.', insert_command)
-            conn.commit()
-            logger.info('The db commited is with data %s.', str(dbdict))
+
+            if dbdict['Fwdownlink']:
+                uuid_id = str(uuid.uuid5(uuid.NAMESPACE_URL, dbdict['Fwdownlink']))
+            else:
+                uuid_id = str(uuid.uuid1())
+
+            with open('../utils/database_txt_file/uuid_generated.txt', 'r') as uuid_read:
+                data = uuid_read.read()
+            with open('../utils/database_txt_file/uuid_generated.txt', 'a') as uuid_file:
+                print(data.split('\n'))
+                if uuid_id not in data.split('\n'):
+                    logger.info("The data is not present with respect to Fwfileid so, the data will be added into DB")
+                    uuid_file.write(str(uuid_id + '\n'))
+                    dbdict['Fwfileid'] = uuid_id
+                    logger.info("The db is updated with the Fwfileid. as %s.", dbdict['Fwfileid'])
+                    columns = "','".join(map(str, dbdict.keys()))
+                    values = "','".join(map(str, dbdict.values()))
+                    insert_command = f"INSERT INTO FWDB('{columns}') VALUES('{values}')"
+                    curs.execute(insert_command)
+                    logger.info('The db is inserted with the command %s.', insert_command)
+                    conn.commit()
+                    logger.info('The db commited is with data %s.', str(dbdict))
+
             # Prints the data in db
             curs.execute('SELECT * FROM FWDB')
             print(curs.fetchall())
             curs.close()
+
         except KeyError as error:
             logger.error("Error writing to db with data dict as: %s and with error as: %s", str(dbdictcarrier), error)
             print(error)

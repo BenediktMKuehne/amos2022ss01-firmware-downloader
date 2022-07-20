@@ -18,6 +18,7 @@ from selenium.webdriver.support.ui import Select
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import metadata_extractor
 from utils.modules_check import vendor_field
 from utils.Logs import get_logger
 logger = get_logger("vendors.honeywell")
@@ -77,6 +78,8 @@ class Honeywell:
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -123,9 +126,9 @@ class Honeywell:
         click_here_options.click()
         rows = driver.find_elements(By.XPATH, '//*[@class="table__row fe-search-item"]')
         for row in rows:
-            web_file_name, last_updated, dummy_file_size, dummy_file_type, dummy_download_text = "", "", "", "", ""
+            web_file_name, last_updated, file_size, dummy_file_type, dummy_download_text = "", "", "", "", ""
             data = rows[rows.index(row)].text
-            web_file_name, last_updated, dummy_file_size, dummy_file_type, dummy_download_text = data.split("\n")
+            web_file_name, last_updated, file_size, dummy_file_type, dummy_download_text = data.split("\n")
             version, model_name = self.regex_sep(web_file_name)
             download_link = rows[rows.index(row)].find_element(
                 By.XPATH, "//div[@class='table__cell table__cell--icons ml-md-auto']//"
@@ -144,6 +147,7 @@ class Honeywell:
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, file_name)
             # Duplication Check for not to download the files if files exist in local machine
             self.down_ele_click(local_file_location, download_element)
+            time.sleep(20)
             dbdict_carrier = {}
             db_used = Database()
             for key in self.dbdict:
@@ -157,6 +161,10 @@ class Honeywell:
                     dbdict_carrier[key] = r'{}'.format(web_file_name)
                 elif key == "Releasedate":
                     dbdict_carrier[key] = last_updated
+                elif key == "Filesize":
+                    dbdict_carrier[key] = file_size
+                elif key == "Lasteditdate":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))["Last Edit Date"]
                 elif key == "Fwdownlink":
                     dbdict_carrier[key] = download_link
                 elif key == "Fwfilelinktolocal":
@@ -503,6 +511,6 @@ if __name__ == '__main__':
     hw = Honeywell()
     hw.homepage()
     hw.advanced_sensing_tech()
-    hw.gas()
-    hw.productivity()
+    # hw.gas()
+    # hw.productivity()
     hw.close_browser()
