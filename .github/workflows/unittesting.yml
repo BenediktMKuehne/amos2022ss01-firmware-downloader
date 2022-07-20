@@ -48,7 +48,8 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a Unit Test modules
         run: |
-          cd ..
+          cd ../..
           pwd
           pipenv install --dev
+          pwd
           pytest
