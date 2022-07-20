@@ -52,4 +52,4 @@ jobs:
           pwd
           pipenv install --dev
           export PYTHONPATH=home/runner/work/
-          pytest
+          pytest home/runner/work/amos2022ss01-firmware-downloader/unit_tests/*
