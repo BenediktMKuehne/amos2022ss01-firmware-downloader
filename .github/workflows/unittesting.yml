@@ -34,10 +34,7 @@ jobs:
         run:  |
               pwd
               cd ./unit_tests*
-        with:
-          python-version: 3.10
-          architecture: x64
-          cache: 'pip'
+
       - name: Install dependencies
         run: |
             python3 -m pip install --upgrade pip
