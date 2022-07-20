@@ -91,9 +91,9 @@ class Database:
             else:
                 uuid_id = str(uuid.uuid1())
 
-            with open('../utils/database_txt_file/uuid_generated.txt', 'r') as uuid_read:
+            with open('../utils/database_txt_file/uuid_generated.txt', 'r', encoding="utf-8") as uuid_read:
                 data = uuid_read.read()
-            with open('../utils/database_txt_file/uuid_generated.txt', 'a') as uuid_file:
+            with open('../utils/database_txt_file/uuid_generated.txt', 'a', encoding="utf-8") as uuid_file:
                 print(data.split('\n'))
                 if uuid_id not in data.split('\n'):
                     logger.info("The data is not present with respect to Fwfileid so, the data will be added into DB")
