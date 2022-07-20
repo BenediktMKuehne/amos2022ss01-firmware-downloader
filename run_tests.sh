@@ -9,4 +9,4 @@ cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd || exit 1
 cd .. || exit 1
 
 # run all unit tests
-python -m pytest --import-mode=append tests/
+python -m pytest --import-mode=append unit_tests/
