@@ -25,6 +25,8 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it ,,
       - uses: actions/checkout@v3
+        run:
+          cd ./amos2022ss01-firmware-downloader/unit_tests/
 
       - name: Install dependencies
         run: |
@@ -36,5 +38,4 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a Unit Test modules
         run: |
-          export PYTHONPATH=$PYTHONPATH:$./amos2022ss01-firmware-downloader/unit_tests/
           pytest ./amos2022ss01-firmware-downloader/unit_tests*
