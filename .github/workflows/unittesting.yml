@@ -52,4 +52,5 @@ jobs:
           pwd
           pipenv install --dev
           export PYTHONPATH=home/runner/work/amos2022ss01-firmware-downloader
+          python -c 'import os, sys; sys.path.append(os.path.abspath(os.path.join('.', '')))'
           pytest -m pytest
