@@ -24,7 +24,7 @@ jobs:
       matrix:
         python-version: [ "3.9", "3.10" ]
     env:
-      working-directory: ./unit_tests
+      working-directory: ./amos2022ss01-firmware-downloader/unit_tests
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
