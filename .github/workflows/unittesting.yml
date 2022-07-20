@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
             echo "set-env name=PYTHONPATH::home/runner/work/amos2022ss01-firmware-downloader"
-            export PYTHONPATH=/home/runner/work/
+            export PYTHONPATH=/home/runner/work/amos2022ss01-firmware-downloader
             python3 -m pip install --upgrade pip
             python3 -m pip install pylint
             python3 -m pip install pytest
@@ -50,4 +50,4 @@ jobs:
         run: |
           cd ..
           pipenv install --dev
-          pytest
+          cd ..; pytest
