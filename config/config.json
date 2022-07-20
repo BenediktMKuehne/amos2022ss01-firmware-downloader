@@ -169,8 +169,8 @@
     "ignore": false,
     "apiurl": "https://www.se.com/ww/en/download/doc-group-type/3541958-Software%20&%20Firmware/resultViewCahnge/resultListAjax",
     "url": "https://www.se.com/ww/en/download/doc-group-type/3541958-Software%20&%20Firmware/?docType=1555893-Firmware&language=en_GB-English&sortByField=Popularityy",
-    "user": "",
-    "password": ""
+    "user": "none",
+    "password": "none"
   },
   "siemens": {
     "interval": 120,

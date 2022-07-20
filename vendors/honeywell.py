@@ -47,10 +47,12 @@ class Honeywell:
             dummy_honeywell_data = json_data['honeywell']
             if vendor_field('honeywell', 'user') is False:
                 logger.error('<module : honeywell > -> user not present')
+                raise Exception("< module :honeywell> user can't be found")
             else:
                 self.email = vendor_field('honeywell', 'user')
             if vendor_field('honeywell', 'password') is False:
                 logger.error('<module : honeywell > -> password not present')
+                raise Exception("< module :honeywell> password can't be found")
             else:
                 self.password = vendor_field('honeywell', 'password')
             if vendor_field('honeywell', 'url') is False:

@@ -33,10 +33,12 @@ class FoscamHomeSecurity:
             dummy_foscam_data = json_data['foscam']
             if vendor_field('foscam', 'user') is False:
                 logger.error('<module : foscam > -> user not present')
+                raise Exception("< module :foscam> user can't be found")
             else:
                 self.email = vendor_field('foscam', 'user')
             if vendor_field('foscam', 'password') is False:
                 logger.error('<module : foscam > -> password not present')
+                raise Exception("< module :foscam> password can't be found")
             else:
                 self.password = vendor_field('foscam', 'password')
             if vendor_field('foscam', 'url') is False:
