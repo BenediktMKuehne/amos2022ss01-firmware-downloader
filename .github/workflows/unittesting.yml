@@ -36,4 +36,4 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a Unit Test modules
         run: |
-          pytest ./amos2022ss01-firmware-downloader/unit_tests*
+          pytest unit_tests*
