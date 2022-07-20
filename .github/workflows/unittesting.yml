@@ -35,6 +35,7 @@ jobs:
               pwd
               cd ./unit_tests*
         with:
+          python-version: 3.10
           architecture: x64
           cache: 'pip'
       - name: Install dependencies
