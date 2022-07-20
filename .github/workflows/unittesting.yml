@@ -49,5 +49,6 @@ jobs:
       - name: Run a Unit Test modules
         run: |
           cd ..
+          pwd
           pipenv install --dev
-          cd ..; pytest
+          pytest
