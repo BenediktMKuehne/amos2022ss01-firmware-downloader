@@ -30,6 +30,8 @@ jobs:
       - name: unit_tests dir
         run: ls -R
         working-directory: ${{env.working-directory}}
+      - name: change dir
+        run: cd pwd
 
       - name: Install dependencies
         run: |
