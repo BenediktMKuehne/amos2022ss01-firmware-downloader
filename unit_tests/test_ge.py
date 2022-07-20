@@ -13,7 +13,9 @@ sys.path.insert(0, parent_dir)
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 DB_NAME = "firmwaredatabase.db"
-CONFIG_PATH = os.path.join("../config", "config.json")
+print(parent_dir)
+CONFIG_PATH = os.path.join(parent_dir, "config", "config.json")
+print(CONFIG_PATH)
 DATA={}
 with open(CONFIG_PATH, "rb") as fp:
     DATA = json.load(fp)
