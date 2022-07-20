@@ -31,7 +31,9 @@ jobs:
         run: ls -R
         working-directory: ${{env.working-directory}}
       - name: change dir
-        run: cd pwd
+        run:  |
+              pwd
+              cd ./unit_tests*
 
       - name: Install dependencies
         run: |
