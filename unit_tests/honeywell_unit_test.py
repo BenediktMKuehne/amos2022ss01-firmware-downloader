@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
+from utils.chromium_downloader import ChromiumDownloader
 
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -71,6 +72,11 @@ class WebCode(unittest.TestCase):
         self.assertEqual("Software and Downloads | Honeywell", driver.title, msg="Homepage testcase passed")
 
     @staticmethod
+    def wait_for_down(in_local_file_location):
+        while not os.path.isfile(in_local_file_location):
+            time.sleep(10)
+
+    @staticmethod
     def down_ele_click(loc_loc, element, f_name):
         # A fn for duplication Check for not to download the files if files exist in local machine
         if not os.path.isfile(loc_loc.replace("\\", "/")):
@@ -116,6 +122,8 @@ class WebCode(unittest.TestCase):
             self.assertTrue(str(local_file_location.replace("\\", "/")), msg="Location exists")
             self.assertTrue(download_element, msg="download element found")
             print(str(local_file_location.replace("\\", "/")))
+            self.wait_for_down(str(local_file_location.replace("\\", "/")))
+            self.assertTrue(local_file_location, msg="Location exists")
             dbdict_carrier = {}
             db_used = Database()
             for key in self.dbdict:
@@ -173,6 +181,7 @@ class WebCode(unittest.TestCase):
                 local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path,
                                                                    download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element, web_file_name)
+                str(local_file_location.replace("\\", "/"))
                 self.assertTrue(str(local_file_location.replace("\\", "/")), msg="Location exists")
                 self.assertTrue(str(local_file_location.replace("\\", "/")), msg="download element found")
                 dbdict_carrier = {}
@@ -203,4 +212,5 @@ class WebCode(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    ChromiumDownloader().executor()
     unittest.main()
