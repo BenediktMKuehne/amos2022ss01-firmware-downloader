@@ -23,8 +23,6 @@ jobs:
     strategy:
       matrix:
         python-version: [ "3.9", "3.10" ]
-    env:
-      working-directory: ./amos2022ss01-firmware-downloader/unit_tests
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -38,8 +36,6 @@ jobs:
           cache: 'pip'
       - name: Install dependencies
         run: |
-            echo "set-env name=PYTHONPATH::home/runner/work/amos2022ss01-firmware-downloader"
-            export PYTHONPATH=/home/runner/work/amos2022ss01-firmware-downloader
             python3 -m pip install github-actions-test
             python3 -m pip install --upgrade pip
             python3 -m pip install pylint
@@ -51,7 +47,5 @@ jobs:
         run: |
           pwd
           pipenv install --dev
-          export PYTHONPATH=./amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/
-          python -c "import os, sys; sys.path.append(os.path.abspath(os.path.join('./amos2022ss01-firmware-downloader/', '')))"
           chmod u+r+x run_tests.sh
           ./run_tests.sh

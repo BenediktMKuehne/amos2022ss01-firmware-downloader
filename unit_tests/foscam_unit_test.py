@@ -51,6 +51,8 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
