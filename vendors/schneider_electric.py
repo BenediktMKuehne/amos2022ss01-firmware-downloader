@@ -107,9 +107,10 @@ def get_firmware_data_using_api(url, fw_count, fw_per_page):
 def transform_metadata_format_ours(raw_data, local_storage_dir="."):
     fw_mod_list = []
     for fw_ in raw_data:
+        local_link = os.path.join(local_storage_dir, parse_qs(urlparse(fw_.get("downloadUrl")).query, keep_blank_values=True).get("p_File_Name", list(str(uuid.uuid4())))[0].replace(" ", "_").replace("'", ""))
         fw_mod = {
             'Fwfileid': 'FILE',
-            'Fwfilename': str(fw_.get("title", "").replace("'", "").replace(" ", "_")),
+            'Fwfilename': local_link.split("\\")[-1],
             'Manufacturer': 'schneider_electric',
             'Modelname': str(fw_.get("title", "").replace("'", "").replace(" ", "_")),
             'Version': str(fw_.get("version", "").replace(" ", "_")),
@@ -120,7 +121,7 @@ def transform_metadata_format_ours(raw_data, local_storage_dir="."):
             'Embalinktoreport': '',
             'Embarklinktoreport': '',
             'Fwdownlink': "https:" + fw_.get("downloadUrl", ""),
-            'Fwfilelinktolocal': os.path.join(local_storage_dir, parse_qs(urlparse(fw_.get("downloadUrl")).query, keep_blank_values=True).get("p_File_Name", list(str(uuid.uuid4())))[0].replace(" ", "_").replace("'", "") ),
+            'Fwfilelinktolocal': local_link,
             'Fwadddata': '',
             'Uploadedonembark': '',
             'Embarkfileid': '',

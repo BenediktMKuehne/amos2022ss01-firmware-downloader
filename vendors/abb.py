@@ -110,9 +110,10 @@ def get_firmware_data_using_api(url, fw_count, fw_per_page):
 def transform_metadata_format_ours(raw_data, local_storage_dir="."):
     fw_mod_list = []
     for fw_ in raw_data:
+        local_link = os.path.join(local_storage_dir, str(uuid.uuid4()) + "." + fw_["metadata"]["fileSuffix"])
         fw_mod = {
             'Fwfileid': '',
-            'Fwfilename': fw_["metadata"]["identification"]["documentNumber"],
+            'Fwfilename': local_link.split("\\")[-1],
             'Manufacturer': 'abb',
             'Modelname': fw_["metadata"]["identification"]["documentNumber"],
             'Version': fw_["metadata"]["identification"]["revision"],
@@ -123,7 +124,7 @@ def transform_metadata_format_ours(raw_data, local_storage_dir="."):
             'Embalinktoreport': '',
             'Embarklinktoreport': '',
             'Fwdownlink': fw_["metadata"]["currentRevisionUrl"],
-            'Fwfilelinktolocal': os.path.join(local_storage_dir, str(uuid.uuid4()) + "." + fw_["metadata"]["fileSuffix"]), #setting temp filename as of now
+            'Fwfilelinktolocal': local_link, #setting temp filename as of now
             'Fwadddata': json.dumps({"summary": fw_["metadata"]["summary"].replace("'","")}),
             'Uploadedonembark': '',
             'Embarkfileid': '',
@@ -144,7 +145,7 @@ def main():
     metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
     logger.info("Printing first transformed document metadata")
     logger.info(json.dumps(metadata[0], indent=4))
-    download_list_files(metadata)
+    download_list_files(metadata, max_files=10)
 
 
 if __name__ == "__main__":

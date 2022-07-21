@@ -1,7 +1,7 @@
 {
   "uploader": {
-    "username": "apiuser",
-    "password": "GpY8V3d25G3gaZg",
+    "username": "test",
+    "password": "test",
     "auth_url": "http://embark.local",
     "upload_fw_url": "http://embark.local/uploader/save/",
     "start_analysis_url": "http://embark.local/uploader/start/"
@@ -46,7 +46,7 @@
     "password": ""
   },
   "openwrt": {
-    "interval": 120,
+    "interval": 0.1,
     "ignore": false,
     "url": "https://openwrt.org/",
     "user": "none",

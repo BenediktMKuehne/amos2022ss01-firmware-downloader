@@ -80,7 +80,7 @@ class FirmwareUploader:
         items = soup.find_all("select", id="id_firmware")
         options = items[0].find_all("option")
         for item in options:
-            scrapped_filename = item.decode_contents().split("- ")[-1].strip()
+            scrapped_filename = item.decode_contents().split("-")[-1].strip()
             scrapped_id = item.get("value")
             if "selected" in item.attrs.keys():
                 if scrapped_filename == filename:
@@ -105,16 +105,16 @@ class FirmwareUploader:
                 if file[12]:
                     fw_metadata["file_path"] = file[12]
                     is_fw_uploaded = fwu.upload_fw(fw_metadata["file_path"])
-                    if is_fw_uploaded is False:
+                    if is_fw_uploaded is True:
                         cursor.execute('''UPDATE FWDB SET Uploadedonembark = ? WHERE Fwfileid = ?''', (is_fw_uploaded, file[0]))
                         conn.commit()
-                    fw_metadata["id"] = fwu.get_id_of_uploaded_file(file[1])
-                    cursor.execute('''UPDATE FWDB SET Embarkfileid = ? WHERE Fwfileid = ?''', (fw_metadata["id"], file[0]))
-                    conn.commit()
-                    is_analysis_start = fwu.start_fw_analysis(fw_metadata)
-                    if is_analysis_start is False:
-                        cursor.execute('''UPDATE FWDB SET Startedanalysisonembark = ? WHERE Fwfileid = ?''', (is_analysis_start, file[0]))
+                        fw_metadata["id"] = fwu.get_id_of_uploaded_file(file[1])
+                        cursor.execute('''UPDATE FWDB SET Embarkfileid = ? WHERE Fwfileid = ?''', (fw_metadata["id"], file[0]))
                         conn.commit()
+                        is_analysis_start = fwu.start_fw_analysis(fw_metadata)
+                        if is_analysis_start is True:
+                            cursor.execute('''UPDATE FWDB SET Startedanalysisonembark = ? WHERE Fwfileid = ?''', (is_analysis_start, file[0]))
+                            conn.commit()
         except sqlite3.Error as er_:
             print('SQLite error: %s' % (' '.join(er_.args)))
 
