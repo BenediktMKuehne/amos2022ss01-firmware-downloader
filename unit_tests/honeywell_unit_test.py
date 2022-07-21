@@ -81,9 +81,7 @@ class WebCode(unittest.TestCase):
         # A fn for duplication Check for not to download the files if files exist in local machine
         if not os.path.isfile(loc_loc.replace("\\", "/")):
             print(f"The file is not found in local repository, now {f_name} will be downloaded into local")
-            time.sleep(10)
             element.click()
-            time.sleep(5)
         else:
             print(f"The file is found in local repository, now {f_name} will not be downloaded into local")
 
@@ -181,7 +179,7 @@ class WebCode(unittest.TestCase):
                 local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path,
                                                                    download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element, web_file_name)
-                str(local_file_location.replace("\\", "/"))
+                self.wait_for_down(str(local_file_location.replace("\\", "/")))
                 self.assertTrue(str(local_file_location.replace("\\", "/")), msg="Location exists")
                 self.assertTrue(str(local_file_location.replace("\\", "/")), msg="download element found")
                 dbdict_carrier = {}
