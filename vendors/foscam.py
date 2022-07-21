@@ -161,7 +161,7 @@ class FoscamHomeSecurity:
 
                         while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
                                 file_name is not None:
-                            time.sleep(10)
+                            time.sleep(5)
 
                         dbdict_carrier = {}
                         db_used = Database()

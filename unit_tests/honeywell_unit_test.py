@@ -74,7 +74,7 @@ class WebCode(unittest.TestCase):
     @staticmethod
     def wait_for_down(in_local_file_location):
         while not os.path.isfile(in_local_file_location):
-            time.sleep(10)
+            time.sleep(5)
 
     @staticmethod
     def down_ele_click(loc_loc, element, f_name):

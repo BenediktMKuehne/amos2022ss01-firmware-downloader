@@ -157,7 +157,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
 
                         while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
                                 file_name is not None:
-                            time.sleep(10)
+                            time.sleep(5)
 
                         self.assertTrue(local_file_location, msg="Location exists")
                         dbdict_carrier = {}

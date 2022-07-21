@@ -102,13 +102,12 @@ class Honeywell:
     @staticmethod
     def wait_for_down(in_local_file_location):
         while not os.path.isfile(in_local_file_location):
-            time.sleep(10)
+            time.sleep(5)
 
     @staticmethod
     def down_ele_click(loc_loc,  element):
         # A fn for duplication Check for not to download the files if files exist in local machine
         if not os.path.isfile(loc_loc.replace("\\", "/")):
-            time.sleep(10)
             element.click()
 
     @staticmethod
