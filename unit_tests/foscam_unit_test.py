@@ -15,6 +15,7 @@ from selenium.webdriver.common.by import By
 
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
+from utils.chromium_downloader import ChromiumDownloader
 
 # from vendors.foscam import FoscamHomeSecurity
 
@@ -22,6 +23,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
+sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 
 class FoscamHomeSecurityTest(unittest.TestCase):
@@ -51,6 +53,8 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -141,11 +145,21 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                         brow_cookies = self.clean_cookies(driver.get_cookies())
                         file_name = self.url_call_file_name(api_url, brow_cookies)
                         local_file_location = fr"{self.path}\{self.down_file_path}\Foscam\{str(f'{file_name}')}"
+                        check_path = r"{}\{}\Foscam".format(self.path, self.down_file_path).replace('\\', '/')
+                        if not os.path.exists(check_path):
+                            print(os.path.isfile(check_path))
+                            os.mkdir(check_path)
+
                         if not os.path.isfile(local_file_location.replace("\\", "/")) and file_name is not None:
                             print("The file is not present in the system so the file %s will be downloaded to path %s",
                                   file_name, local_file_location)
                             wget.download(down_link, local_file_location)
-                            self.assertTrue(local_file_location, msg="Location exists")
+
+                        while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
+                                file_name is not None:
+                            time.sleep(5)
+
+                        self.assertTrue(local_file_location, msg="Location exists")
                         dbdict_carrier = {}
                         db_used = Database()
                         for key in self.dbdict:
@@ -160,7 +174,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                             elif key == "Releasedate":
                                 dbdict_carrier[key] = build_date
                             elif key == "Fwadddata":
-                                dbdict_carrier[key] = add_desc
+                                dbdict_carrier[key] = r'{}'.format(str(add_desc))
                             elif key == "Fwdownlink":
                                 dbdict_carrier[key] = down_link
                             elif key == "Fwfilelinktolocal":
@@ -194,4 +208,5 @@ class FoscamHomeSecurityTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    ChromiumDownloader().executor()
     unittest.main()
