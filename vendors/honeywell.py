@@ -18,6 +18,7 @@ from selenium.webdriver.support.ui import Select
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import metadata_extractor
 from utils.modules_check import vendor_field
 from utils.Logs import get_logger
 logger = get_logger("vendors.honeywell")
@@ -77,6 +78,8 @@ class Honeywell:
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -97,10 +100,14 @@ class Honeywell:
         driver.maximize_window()
 
     @staticmethod
+    def wait_for_down(in_local_file_location):
+        while not os.path.isfile(in_local_file_location):
+            time.sleep(5)
+
+    @staticmethod
     def down_ele_click(loc_loc,  element):
         # A fn for duplication Check for not to download the files if files exist in local machine
         if not os.path.isfile(loc_loc.replace("\\", "/")):
-            time.sleep(10)
             element.click()
 
     @staticmethod
@@ -123,9 +130,9 @@ class Honeywell:
         click_here_options.click()
         rows = driver.find_elements(By.XPATH, '//*[@class="table__row fe-search-item"]')
         for row in rows:
-            web_file_name, last_updated, dummy_file_size, dummy_file_type, dummy_download_text = "", "", "", "", ""
+            web_file_name, last_updated, file_size, dummy_file_type, dummy_download_text = "", "", "", "", ""
             data = rows[rows.index(row)].text
-            web_file_name, last_updated, dummy_file_size, dummy_file_type, dummy_download_text = data.split("\n")
+            web_file_name, last_updated, file_size, dummy_file_type, dummy_download_text = data.split("\n")
             version, model_name = self.regex_sep(web_file_name)
             download_link = rows[rows.index(row)].find_element(
                 By.XPATH, "//div[@class='table__cell table__cell--icons ml-md-auto']//"
@@ -143,7 +150,8 @@ class Honeywell:
             actions.move_to_element(download_element).perform()
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, file_name)
             # Duplication Check for not to download the files if files exist in local machine
-            self.down_ele_click(local_file_location, download_element)
+            self.down_ele_click(str(local_file_location.replace("\\", "/")), download_element)
+            self.wait_for_down(str(local_file_location.replace("\\", "/")))
             dbdict_carrier = {}
             db_used = Database()
             for key in self.dbdict:
@@ -157,6 +165,11 @@ class Honeywell:
                     dbdict_carrier[key] = r'{}'.format(web_file_name)
                 elif key == "Releasedate":
                     dbdict_carrier[key] = last_updated
+                elif key == "Filesize":
+                    dbdict_carrier[key] = file_size
+                elif key == "Lasteditdate":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                        "Last Edit Date"]
                 elif key == "Fwdownlink":
                     dbdict_carrier[key] = download_link
                 elif key == "Fwfilelinktolocal":
@@ -211,8 +224,8 @@ class Honeywell:
         print([ele.text for ele in crows])
         for crow in crows:
             crow_add_desc = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[1]".format(crows.index(crow)+1)).text
-            cfile_name = driver.find_element(By.XPATH, ".//tbody//tr[{}]//strong[@class='title']".format(crows.index(crow)+1))\
-                .text
+            cfile_name = driver.find_element(By.XPATH, ".//tbody//tr[{}]//strong[@class='title']".format(crows.index(
+                crow)+1)).text
             crow_add_desc = crow_add_desc.replace(cfile_name, '')
             data_soft_id = driver.find_element(
                 By.XPATH, f".//tbody//tr[{crows.index(crow)}+1]"
@@ -224,11 +237,12 @@ class Honeywell:
             brow_cookies = self.clean_cookies(driver.get_cookies())
             crow_down_link = self.url_call(en_data_soft_id_url, brow_cookies)
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, cfile_name)
-            if not os.path.isfile(local_file_location.replace("\\", "/")):
+            if not os.path.isfile(str(local_file_location.replace("\\", "/"))):
                 response = requests.get(crow_down_link)
-                with open(local_file_location, 'wb') as zip_file:
+                with open(str(local_file_location.replace("\\", "/")), 'wb') as zip_file:
                     zip_file.write(response.content)
             print(cfile_name, crow_down_link, crow_add_desc, sep='\n')
+            self.wait_for_down(str(local_file_location.replace("\\", "/")))
             dbdict_carrier = {}
             db_used = Database()
             for key in self.dbdict:
@@ -236,6 +250,12 @@ class Honeywell:
                     dbdict_carrier[key] = r'{}'.format(cfile_name)
                 elif key == "Manufacturer":
                     dbdict_carrier[key] = "Honeywell"
+                elif key == "Filesize":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                            "File Size"]
+                elif key == "Lasteditdate":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                        "Last Edit Date"]
                 elif key == "Fwdownlink":
                     dbdict_carrier[key] = r'{}'.format(crow_down_link)
                 elif key == "Fwfilelinktolocal":
@@ -465,6 +485,7 @@ class Honeywell:
                 local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path,
                                                                    download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element)
+                self.wait_for_down(local_file_location)
                 dbdict_carrier = {}
                 db_used = Database()
                 for key in self.dbdict:
@@ -476,6 +497,12 @@ class Honeywell:
                         dbdict_carrier[key] = r'{}'.format(model_name)
                     elif key == "Version":
                         dbdict_carrier[key] = r'{}'.format(version)
+                    elif key == "Filesize":
+                        dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                            "File Size"]
+                    elif key == "Lasteditdate":
+                        dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                            "Last Edit Date"]
                     elif key == "Fwdownlink":
                         dbdict_carrier[key] = download_link
                     elif key == "Fwfilelinktolocal":
