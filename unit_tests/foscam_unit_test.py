@@ -15,6 +15,7 @@ from selenium.webdriver.common.by import By
 
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
+from utils.chromium_downloader import ChromiumDownloader
 
 # from vendors.foscam import FoscamHomeSecurity
 
@@ -173,7 +174,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                             elif key == "Releasedate":
                                 dbdict_carrier[key] = build_date
                             elif key == "Fwadddata":
-                                dbdict_carrier[key] = add_desc
+                                dbdict_carrier[key] = r''.format(str(add_desc))
                             elif key == "Fwdownlink":
                                 dbdict_carrier[key] = down_link
                             elif key == "Fwfilelinktolocal":
@@ -207,4 +208,5 @@ class FoscamHomeSecurityTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    ChromiumDownloader().executor()
     unittest.main()
