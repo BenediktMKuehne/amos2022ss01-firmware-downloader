@@ -174,7 +174,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                             elif key == "Releasedate":
                                 dbdict_carrier[key] = build_date
                             elif key == "Fwadddata":
-                                dbdict_carrier[key] = r''.format(str(add_desc))
+                                dbdict_carrier[key] = r'{}'.format(str(add_desc))
                             elif key == "Fwdownlink":
                                 dbdict_carrier[key] = down_link
                             elif key == "Fwfilelinktolocal":
