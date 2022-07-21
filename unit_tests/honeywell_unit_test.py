@@ -117,6 +117,7 @@ class WebCode(unittest.TestCase):
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, file_name)
             # Duplication Check for not to download the files if files exist in local machine
             self.down_ele_click(local_file_location, download_element, file_name)
+            self.wait_for_down(str(local_file_location.replace('\\', '/')))
             self.assertTrue(str(local_file_location.replace("\\", "/")), msg="Location exists")
             self.assertTrue(download_element, msg="download element found")
             print(str(local_file_location.replace("\\", "/")))
