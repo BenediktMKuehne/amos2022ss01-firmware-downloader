@@ -183,7 +183,7 @@ class FoscamHomeSecurity:
                                     dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/"))
                                                                              )["Last Edit Date"]
                                 else:
-                                    dbdict_carrier[key] = None
+                                    dbdict_carrier[key] = ''
 
                             elif key == "Fwadddata":
                                 dbdict_carrier[key] = r'{}'.format(str(add_desc))
@@ -195,10 +195,10 @@ class FoscamHomeSecurity:
                                 if local_file_location.split("\\")[-1] is not None and file_name is not None:
                                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                                 else:
-                                    dbdict_carrier[key] = None
+                                    dbdict_carrier[key] = ''
 
                             else:
-                                dbdict_carrier[key] = None
+                                dbdict_carrier[key] = ''
 
                         db_used.insert_data(dbdict_carrier)
             except NoSuchElementException:
@@ -211,7 +211,7 @@ class FoscamHomeSecurity:
                         dbdict_carrier[key] = fr"The Webpage doesn't contain any Firmware downloads,\
                         So this page is skipped, The Firmware crawled page is: {href_url}"
                     else:
-                        dbdict_carrier[key] = None
+                        dbdict_carrier[key] = ''
                 db_used.insert_data(dbdict_carrier)
 
     def close_browser(self):
