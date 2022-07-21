@@ -87,7 +87,7 @@ class Database:
                 dbdict[key] = dbdictcarrier[key]
                 logger.info('The %s is updated with the Key: %s and Value: %s.', self.dbname, key, dbdict[key])
 
-            if dbdict['Fwdownlink'] != '':
+            if (dbdict['Fwdownlink'] != '' or dbdict['Fwdownlink'] is not None) and 'https://' in dbdict['Fwdownlink']:
                 print(dbdict['Fwdownlink'])
                 uuid_id = str(uuid.uuid5(uuid.NAMESPACE_URL, dbdict['Fwdownlink']))
                 print(uuid_id)
