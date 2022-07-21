@@ -141,6 +141,7 @@ class FoscamHomeSecurity:
                         build_date = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[2]".format(row)).text
                         size = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[3]".format(row)).text
                         release_notes = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[4]".format(row)).text
+                        release_notes = release_notes.replace("'", '')
                         attention = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[5]".format(row)).text
                         down_link = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[6]//a".format(row)) \
                             .get_attribute('href')
@@ -208,7 +209,7 @@ class FoscamHomeSecurity:
                     if key == "Manufacturer":
                         dbdict_carrier[key] = "Foscam"
                     elif key == "Fwadddata":
-                        dbdict_carrier[key] = fr"The Webpage doesn't contain any Firmware downloads,\
+                        dbdict_carrier[key] = fr"The Webpage does not contain any Firmware downloads,\
                         So this page is skipped, The Firmware crawled page is: {href_url}"
                     else:
                         dbdict_carrier[key] = ''

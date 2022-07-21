@@ -58,7 +58,7 @@ class Database:
                             Embarklinktoreport TEXT,
                             Fwdownlink TEXT NOT NULL,
                             Fwfilelinktolocal TEXT NOT NULL,
-                            Fwadddata BLOB,
+                            Fwadddata TEXT,
                             Uploadedonembark BOOLEAN DEFAULT false,
                             Embarkfileid VARCHAR DEFAULT NULL,
                             Startedanalysisonembark BOOLEAN DEFAULT false)"""
@@ -96,9 +96,9 @@ class Database:
                 uuid_id = str(uuid.uuid1())
                 print(uuid_id)
 
-            if not os.path.exists('../utils/database_txt_file'):
+            if not os.path.isfile('../utils/database_txt_file/uuid_generated.txt'):
                 print(os.path.exists('../utils/database_txt_file'))
-                os.mkdir('../utils/database_txt_file/')
+                os.mkdir('../utils/database_txt_file')
                 with open('../utils/database_txt_file/uuid_generated.txt', 'w', encoding="utf-8") as uuid_file:
                     uuid_file.write('This file contains the UUID generated from download links & will be stored in DB.'
                                     + '\n')
