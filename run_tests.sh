@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export PYTHONPATH="$PYTHONPATH: ${PWD}/"
+export PYTHONPATH="$PYTHONPATH: ../amos2022ss01-firmware-downloader"
 export PIPENV_VENV_IN_PROJECT="True"
 
 # get parent folder
