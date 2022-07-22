@@ -1,8 +1,14 @@
 import os
+import sys
 import sqlite3
 import uuid
+import inspect
 from utils.Logs import get_logger
 
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+print(parent_dir)
 logger = get_logger("utils.database")
 
 
@@ -11,7 +17,7 @@ class Database:
 
     def __init__(self, db_path="firmwaredatabase.db"):
         # The initialization function is available for all the methods with the db class
-        self.dbname = db_path
+        self.dbname = fr"{parent_dir}\utils\{db_path}"
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',
@@ -65,7 +71,7 @@ class Database:
         curs.execute(create_command)
         logger.info('The database is created successfully in the code repository with the command: %s.', create_command)
         conn.commit()
-        curs.close()
+        # curs.close()
 
     def db_check(self):
         # The function checks the db file, if not present it will create a db in the repo where database is used
@@ -96,16 +102,16 @@ class Database:
                 uuid_id = str(uuid.uuid1())
                 print(uuid_id)
 
-            if not os.path.isfile('../utils/database_txt_file/uuid_generated.txt'):
-                print(os.path.exists('../utils/database_txt_file'))
-                os.mkdir('../utils/database_txt_file')
-                with open('../utils/database_txt_file/uuid_generated.txt', 'w', encoding="utf-8") as uuid_file:
+            if not os.path.isfile(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt'):
+                print(os.path.exists('{parent_dir}/utils/database_txt_file'))
+                os.mkdir(fr'{parent_dir}/utils/database_txt_file')
+                with open(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt', 'w', encoding="utf-8") as uuid_file:
                     uuid_file.write('This file contains the UUID generated from download links & will be stored in DB.'
                                     + '\n')
 
-            with open('../utils/database_txt_file/uuid_generated.txt', 'r', encoding="utf-8") as uuid_read:
+            with open(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt', 'r', encoding="utf-8") as uuid_read:
                 data = uuid_read.read()
-            with open('../utils/database_txt_file/uuid_generated.txt', 'a', encoding="utf-8") as uuid_file:
+            with open(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt', 'a', encoding="utf-8") as uuid_file:
                 # print(data.split('\n'))
                 if uuid_id not in data.split('\n'):
                     logger.info("The data is not present with respect to Fwfileid so, the data will be added into DB")
