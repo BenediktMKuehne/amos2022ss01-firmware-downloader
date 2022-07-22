@@ -166,7 +166,7 @@ class Honeywell:
                 elif key == "Releasedate":
                     dbdict_carrier[key] = last_updated
                 elif key == "Filesize":
-                    dbdict_carrier[key] = file_size
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))["File Size"]
                 elif key == "Lasteditdate":
                     dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
                         "Last Edit Date"]

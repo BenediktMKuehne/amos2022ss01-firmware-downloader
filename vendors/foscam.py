@@ -178,7 +178,12 @@ class FoscamHomeSecurity:
                             elif key == "Releasedate":
                                 dbdict_carrier[key] = build_date
                             elif key == "Filesize":
-                                dbdict_carrier[key] = size
+                                if local_file_location.split("\\")[-1] is not None and file_name is not None:
+                                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/"))
+                                                                             )["File Size"]
+                                else:
+                                    dbdict_carrier[key] = ''
+
                             elif key == "Lasteditdate":
                                 if local_file_location.split("\\")[-1] is not None and file_name is not None:
                                     dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/"))
