@@ -115,7 +115,6 @@ class FirmwareUploader:
 
             cursor.execute("select * from FWDB WHERE Uploadedonembark=1 AND Startedanalysisonembark=''")
             data_list_1 = cursor.fetchall()
-            fw_metadata_1 = {}
             for file in data_list_1:
                 if file[17]:
                     fw_metadata_1 = {
