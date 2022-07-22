@@ -286,7 +286,7 @@ class Honeywell:
         time.sleep(10)
         hny_down_tool = driver.find_element(By.XPATH, ".//a[contains(text(),'here')]").get_attribute('href')
         print(hny_down_tool)
-        honeywell_zip = wget.download(hny_down_tool, 'honeywell_downloader.zip')
+        honeywell_zip = wget.download(hny_down_tool, fr'{parent_dir}/vendors/honeywell_downloader.zip')
         with zipfile.ZipFile(honeywell_zip, 'r') as zip_ref:
             zip_ref.extractall()
         os.remove(honeywell_zip)
