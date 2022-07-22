@@ -130,9 +130,9 @@ class Honeywell:
         click_here_options.click()
         rows = driver.find_elements(By.XPATH, '//*[@class="table__row fe-search-item"]')
         for row in rows:
-            web_file_name, last_updated, file_size, dummy_file_type, dummy_download_text = "", "", "", "", ""
+            web_file_name, last_updated, dummy_file_size, dummy_file_type, dummy_download_text = "", "", "", "", ""
             data = rows[rows.index(row)].text
-            web_file_name, last_updated, file_size, dummy_file_type, dummy_download_text = data.split("\n")
+            web_file_name, last_updated, dummy_file_size, dummy_file_type, dummy_download_text = data.split("\n")
             version, model_name = self.regex_sep(web_file_name)
             download_link = rows[rows.index(row)].find_element(
                 By.XPATH, "//div[@class='table__cell table__cell--icons ml-md-auto']//"
