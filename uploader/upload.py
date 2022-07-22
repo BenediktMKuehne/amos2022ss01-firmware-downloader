@@ -123,7 +123,7 @@ class FirmwareUploader:
                         'version': file[4],
                         'vendor': file[2]
                     }
-                    is_analysis_start = fwu.start_fw_analysis(file[17])
+                    is_analysis_start = fwu.start_fw_analysis(fw_metadata_1)
                     if is_analysis_start is True:
                         cursor.execute('''UPDATE FWDB SET Startedanalysisonembark = ? WHERE Fwfileid = ?''', (is_analysis_start, file[0]))
                         conn.commit()
