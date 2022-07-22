@@ -109,13 +109,15 @@ def transform_metadata_format_ours(raw_data, local_storage_dir="."):
     for fw_ in raw_data:
         local_link = os.path.join(local_storage_dir, parse_qs(urlparse(fw_.get("downloadUrl")).query, keep_blank_values=True).get("p_File_Name", list(str(uuid.uuid4())))[0].replace(" ", "_").replace("'", ""))
         fw_mod = {
-            'Fwfileid': 'FILE',
+            'Fwfileid': '',
             'Fwfilename': local_link.split("\\")[-1],
             'Manufacturer': 'schneider_electric',
             'Modelname': str(fw_.get("title", "").replace("'", "").replace(" ", "_")),
             'Version': str(fw_.get("version", "").replace(" ", "_")),
             'Type': str(fw_.get("documentTypeEnglishLabel", "").replace(" ", "_")),
             'Releasedate': fw_.get("docDate", ""),
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',

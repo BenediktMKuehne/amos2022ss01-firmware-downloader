@@ -47,6 +47,7 @@ def download_single_file(file_metadata):
     file_metadata["Fwfilelinktolocal"] = "/".join(old_file_name_list)
     file_path_to_save = os.path.abspath(DATA['file_paths']['download_files_path'] + "/" + file_metadata["Fwfilelinktolocal"])
     file_metadata["Fwfilelinktolocal"] = file_path_to_save
+    file_metadata["Fwfilename"] = file_path_to_save.split("\\")[-1]
     logger.info("File saved at %s", file_path_to_save)
     with open(file_path_to_save, "wb") as fp_:
         fp_.write(resp.content)
@@ -111,14 +112,17 @@ def transform_metadata_format_ours(raw_data, local_storage_dir="."):
     fw_mod_list = []
     for fw_ in raw_data:
         local_link = os.path.join(local_storage_dir, str(uuid.uuid4()) + "." + fw_["metadata"]["fileSuffix"])
+
         fw_mod = {
             'Fwfileid': '',
-            'Fwfilename': local_link.split("\\")[-1],
+            'Fwfilename': local_link.split("\\")[-1], #temp name
             'Manufacturer': 'abb',
             'Modelname': fw_["metadata"]["identification"]["documentNumber"],
             'Version': fw_["metadata"]["identification"]["revision"],
             'Type': fw_["metadata"]["documentKind"],
             'Releasedate': fw_["metadata"]["publishedDate"],
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -145,7 +149,7 @@ def main():
     metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
     logger.info("Printing first transformed document metadata")
     logger.info(json.dumps(metadata[0], indent=4))
-    download_list_files(metadata, max_files=10)
+    download_list_files(metadata)
 
 
 if __name__ == "__main__":

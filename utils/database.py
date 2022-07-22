@@ -96,16 +96,16 @@ class Database:
                 uuid_id = str(uuid.uuid1())
                 print(uuid_id)
 
-            if not os.path.isfile('../utils/database_txt_file/uuid_generated.txt'):
-                print(os.path.exists('../utils/database_txt_file'))
-                os.mkdir('../utils/database_txt_file')
-                with open('../utils/database_txt_file/uuid_generated.txt', 'w', encoding="utf-8") as uuid_file:
+            if not os.path.isfile('./utils/database_txt_file/uuid_generated.txt'):
+                print(os.path.exists('./utils/database_txt_file'))
+                os.mkdir('./utils/database_txt_file')
+                with open('./utils/database_txt_file/uuid_generated.txt', 'w', encoding="utf-8") as uuid_file:
                     uuid_file.write('This file contains the UUID generated from download links & will be stored in DB.'
                                     + '\n')
 
-            with open('../utils/database_txt_file/uuid_generated.txt', 'r', encoding="utf-8") as uuid_read:
+            with open('./utils/database_txt_file/uuid_generated.txt', 'r', encoding="utf-8") as uuid_read:
                 data = uuid_read.read()
-            with open('../utils/database_txt_file/uuid_generated.txt', 'a', encoding="utf-8") as uuid_file:
+            with open('./utils/database_txt_file/uuid_generated.txt', 'a', encoding="utf-8") as uuid_file:
                 # print(data.split('\n'))
                 if uuid_id not in data.split('\n'):
                     logger.info("The data is not present with respect to Fwfileid so, the data will be added into DB")
