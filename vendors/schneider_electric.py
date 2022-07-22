@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 from utils.check_duplicates import check_duplicates, Database
 from utils.Logs import get_logger
 from utils.modules_check import vendor_field
-from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import get_hash_value, metadata_extractor
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -68,13 +68,18 @@ def write_metadata_to_db(metadata, db_path=None):
     else:
         db_ = Database()
     for fw_ in metadata:
-        fw_["Checksum"] = get_hash_value(fw_["Fwfilelinktolocal"])
+        if os.path.isfile(fw_["Fwfilelinktolocal"]):
+            fw_["Checksum"] = get_hash_value(fw_["Fwfilelinktolocal"])
+            meta_data = metadata_extractor(fw_["Fwfilelinktolocal"])
+            fw_["Filesize"] = meta_data['File Size']
+            fw_["Lasteditdate"] = meta_data['Last Edit Date']
         db_.insert_data(dbdictcarrier=fw_)
 
 def se_get_total_firmware_count(url):
     req = requests.get(url)
     soup = BeautifulSoup(req.text, 'html.parser')
     items = soup.find_all("label", class_="dn-check dn-selected")
+    count = 0
     for item in items:
         if item.get("for") == "docTypeFilters-1555893":
             inner_html =item.decode_contents()
@@ -82,7 +87,7 @@ def se_get_total_firmware_count(url):
             count = int(numbers[0])
             logger.info("Found total %d firmwares", count)
             return count
-    return int(numbers[0])
+    return count
 
 def get_firmware_data_using_api(url, fw_count, fw_per_page):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}

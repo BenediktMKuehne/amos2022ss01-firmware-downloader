@@ -13,7 +13,7 @@ from utils.database import Database
 from utils.check_duplicates import check_duplicates
 from utils.Logs import get_logger
 from utils.modules_check import config_check
-from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import get_hash_value, metadata_extractor
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -78,18 +78,20 @@ def download_file(data):
     req_data = {
         'Fwfileid': 'FILE',
         'Fwfilename': data['data0'],
-		'Manufacturer': 'GE',
-		'Modelname': os.path.splitext(data['data0'])[0],
-		'Version': '',
-		'Type': '',
-		'Releasedate': data['data1'],
-		'Checksum': 'None',
-		'Embatested': '',
-		'Embalinktoreport': '',
-		'Embarklinktoreport': '',
-		'Fwdownlink': data['url'],
-		'Fwfilelinktolocal': local_uri,
-		'Fwadddata': '',
+        'Manufacturer': 'GE',
+        'Modelname': os.path.splitext(data['data0'])[0],
+        'Version': '',
+        'Type': '',
+        'Releasedate': data['data1'],
+        'Filesize': '',
+        'Lasteditdate': '',
+        'Checksum': 'None',
+        'Embatested': '',
+        'Embalinktoreport': '',
+        'Embarklinktoreport': '',
+        'Fwdownlink': data['url'],
+        'Fwfilelinktolocal': local_uri,
+        'Fwadddata': '',
         'Uploadedonembark': '',
         'Embarkfileid': '',
         'Startedanalysisonembark': ''
@@ -107,7 +109,11 @@ def download_file(data):
             with open(data['file_path_to_save'], "wb") as fp_:
                 fp_.write(resp.content)
             if data['is_file_download'] is False:
-                req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
+                if os.path.isfile(local_uri):
+                    req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
+                    meta_data = metadata_extractor(local_uri.replace('\\', '/'))
+                    req_data['Filesize'] = meta_data['File Size']
+                    req_data['Lasteditdate'] = meta_data['Last Edit Date']
                 insert_into_db(req_data)
         else:
             logger.info("<%s> -> Downloading Firmware <%s>", data['main_url'], data['file_path_to_save'])
@@ -132,6 +138,9 @@ def download_file(data):
                     print(local_uri)
                     if os.path.isfile(local_uri):
                         req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
+                        meta_data = metadata_extractor(local_uri.replace('\\', '/'))
+                        req_data['Filesize'] = meta_data['File Size']
+                        req_data['Lasteditdate'] = meta_data['Last Edit Date']
                     insert_into_db(req_data)
             except Exception as er_:
                 logger.error("<module GE> Error in downloading: %s", data['url'])

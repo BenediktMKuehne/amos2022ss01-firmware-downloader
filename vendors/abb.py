@@ -9,7 +9,7 @@ import requests
 from utils.database import Database
 from utils.Logs import get_logger
 from utils.modules_check import vendor_field
-from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import get_hash_value, metadata_extractor
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -66,7 +66,11 @@ def write_metadata_to_db(metadata):
     logger.info("Going to write metadata in db")
     db_ = Database()
     for fw_ in metadata:
-        fw_["Checksum"] = get_hash_value(fw_["Fwfilelinktolocal"])
+        if os.path.isfile(fw_["Fwfilelinktolocal"]):
+            fw_["Checksum"] = get_hash_value(fw_["Fwfilelinktolocal"])
+            meta_data = metadata_extractor(fw_["Fwfilelinktolocal"])
+            fw_["Filesize"] = meta_data['File Size']
+            fw_["Lasteditdate"] = meta_data['Last Edit Date']
         db_.insert_data(dbdictcarrier=fw_)
 
 def se_get_total_firmware_count(url):
@@ -133,7 +137,7 @@ def transform_metadata_format_ours(raw_data, local_storage_dir="."):
             'Uploadedonembark': '',
             'Embarkfileid': '',
             'Startedanalysisonembark': ''
-	    }
+        }
         fw_mod_list.append(fw_mod)
     return fw_mod_list
 
@@ -149,7 +153,7 @@ def main():
     metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
     logger.info("Printing first transformed document metadata")
     logger.info(json.dumps(metadata[0], indent=4))
-    download_list_files(metadata)
+    download_list_files(metadata, max_files=5)
 
 
 if __name__ == "__main__":
