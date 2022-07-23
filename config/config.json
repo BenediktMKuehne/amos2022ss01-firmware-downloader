@@ -1,10 +1,11 @@
 {
   "uploader": {
-    "username": "apiuser",
-    "password": "GpY8V3d25G3gaZg",
+    "username": "test",
+    "password": "test",
     "auth_url": "http://embark.local",
     "upload_fw_url": "http://embark.local/uploader/save/",
-    "start_analysis_url": "http://embark.local/uploader/start/"
+    "start_analysis_url": "http://embark.local/uploader/start/",
+    "analysis_interval": 5
   },
   "file_paths": {
     "download_files_path": "Downloads",
@@ -12,7 +13,7 @@
   },
   "foscam": {
     "interval": 120,
-    "ignore": false,
+    "ignore": true,
     "url": "https://www.foscam.com/downloads/index.html",
     "user": "none",
     "password": "none"
@@ -47,7 +48,7 @@
   },
   "openwrt": {
     "interval": 120,
-    "ignore": false,
+    "ignore": true,
     "url": "https://openwrt.org/",
     "user": "none",
     "password": "none"
@@ -152,21 +153,21 @@
   },
   "ge": {
     "interval": 120,
-    "ignore": false,
+    "ignore": true,
     "url": "https://www.gegridsolutions.com",
     "user": "tariqmagsi125@gmail.com",
     "password": "Cs!-56478"
   },
   "abb": {
     "interval": 120,
-    "ignore": false,
+    "ignore": true,
     "url": "https://discoveryapi.library.abb.com/api/public/documents",
     "user": "none",
     "password": "none"
   },
   "schneider_electric": {
     "interval": 120,
-    "ignore": false,
+    "ignore": true,
     "apiurl": "https://www.se.com/ww/en/download/doc-group-type/3541958-Software%20&%20Firmware/resultViewCahnge/resultListAjax",
     "url": "https://www.se.com/ww/en/download/doc-group-type/3541958-Software%20&%20Firmware/?docType=1555893-Firmware&language=en_GB-English&sortByField=Popularityy",
     "user": "",
