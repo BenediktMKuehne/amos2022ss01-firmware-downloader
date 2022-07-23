@@ -89,6 +89,11 @@ class FirmwareUploader:
                 if scrapped_filename == filename.replace(" ", "_"):
                     print("Found id of uploaded file %s", scrapped_id)
                     return scrapped_id
+                else:
+                    print("Warning: Found id of uploaded file %s but name is mismatched", scrapped_id)
+                    print("Actual Filename %s", filename.replace(" ", "_"))
+                    print("Scrapped Filename %s", scrapped_filename)
+                    return scrapped_id
         print("Id not found for filename %s", filename)
         return None
 
@@ -119,7 +124,7 @@ class FirmwareUploader:
             if flag is True:
                 schedule.every(DATA['uploader']['analysis_interval']).minutes.do(self.analysis, db_name, fwu)
 
-            while len(data_list_1) is True:
+            while len(data_list_1) > 0:
                 schedule.run_pending()
                 time.sleep(1)
 
@@ -138,14 +143,13 @@ class FirmwareUploader:
             cursor.execute("select * from FWDB WHERE Uploadedonembark=''")
             data_list = cursor.fetchall()
             print(data_list)
-            fwu = FirmwareUploader()
-            fwu.authenticate(DATA['uploader']['username'], DATA['uploader']['password'])
+            self.authenticate(DATA['uploader']['username'], DATA['uploader']['password'])
             fw_metadata = {}
             for file in data_list:
                 if file[14]:
                     fw_metadata["file_path"] = file[14]
-                    is_fw_uploaded = fwu.upload_fw(fw_metadata["file_path"])
-                    fw_metadata["id"] = fwu.get_id_of_uploaded_file(file[1])
+                    is_fw_uploaded = self.upload_fw(fw_metadata["file_path"])
+                    fw_metadata["id"] = self.get_id_of_uploaded_file(file[1])
                     fw_metadata["version"] = file[4]
                     fw_metadata["vendor"] = file[2]
                     if is_fw_uploaded is True:
@@ -154,9 +158,9 @@ class FirmwareUploader:
                         if fw_metadata["id"] is not None:
                             cursor.execute('''UPDATE FWDB SET Embarkfileid = ? WHERE Fwfileid = ?''', (fw_metadata["id"], file[0]))
                             conn.commit()
+            self.analysis(db_name)
         except sqlite3.Error as er_:
             print('SQLite error: %s' % (' '.join(er_.args)))
 
         conn.close()
 
-        self.analysis(db_name, fwu)

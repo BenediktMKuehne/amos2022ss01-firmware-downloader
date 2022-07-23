@@ -3,9 +3,29 @@
 RANDOM_PW=$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 10 | head -n 1)
 
 # first install
-pip install pipreqs
-pipreqs path/to/project # Generate requirements.txt file
-# There is now a requirements.txt file in the project folder which will have dependencies.
+is_python_installed=0
+if  [[ $(which python) ]] ; then
+       echo "Python is installed"
+        python --version
+        is_python_installed=1
+fi
+if [[ $(which python3) ]] ; then
+	echo "Python is installed"
+	python3 --version
+	is_python_installed=1
+fi
+if [[ $is_python_installed == 0 ]] ; then
+	echo "Python installation not found"
+	echo "installing python"
+	export DEBIAN_FRONTEND=noninteractive
+	apt-get update
+	apt-get install -y software-properties-common
+	add-apt-repository ppa:deadsnakes/ppa
+	apt-get install -y python3.8
+fi
+
+apt-get install -y python-pip python3-pip
+pip install -U pip
 # to install a requirements.txt file:
 pip install -r requirements.txt
 
