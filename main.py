@@ -37,8 +37,7 @@ def thread_pool(num_threads_, whitelisted_modules_):
         for module in whitelisted_modules_:
             if module in config:
                 logger.info("Starting %s downloader ...", module)
-                executor_job(module, executor)
-                # schedule.every(config[module]['interval']).minutes.do(executor_job, module, executor)
+                schedule.every(config[module]['interval']).minutes.do(executor_job, module, executor)
             else:
                 schedule.every(config['default']['interval']).minutes.do(executor_job, module, executor)
         while True:
