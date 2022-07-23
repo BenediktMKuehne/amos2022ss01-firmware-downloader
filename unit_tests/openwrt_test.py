@@ -10,7 +10,10 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
-
+from utils.metadata_extractor import metadata_extractor
+from utils.modules_check import vendor_field
+from utils.Logs import get_logger
+logger = get_logger("vendors.openwrt")
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
@@ -23,11 +26,23 @@ class WebCode(unittest.TestCase):
         # All the required data is initialized in this function
         with open(os.path.join(parent_dir, 'config', 'config.json'), 'rb') as json_file:
             json_data = json.loads(json_file.read())
-            openwrt_data = json_data['openwrt']
-            self.url = openwrt_data['url']
-            self.down_file_path = json_data['file_paths']['download_test_files_path']
-        self.driver = webdriver.Chrome()
+            dummy_openwrt_data = json_data['openwrt']
+            if vendor_field('openwrt', 'user') is False:
+                logger.error('<module : openwrt > -> user not present')
+            else:
+                self.email = vendor_field('openwrt', 'user')
+            if vendor_field('openwrt', 'password') is False:
+                logger.error('<module : openwrt > -> password not present')
+            else:
+                self.password = vendor_field('openwrt', 'password')
+            if vendor_field('openwrt', 'url') is False:
+                logger.error('<module : openwrt > -> url not present')
+                self.url = "https://openwrt.org/"
+            else:
+                self.url = vendor_field('openwrt', 'url')
+            self.down_file_path = json_data['file_paths']['download_files_path']
         self.path = os.getcwd()
+        self.driver = webdriver.Chrome()
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',
@@ -36,6 +51,8 @@ class WebCode(unittest.TestCase):
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -55,7 +72,7 @@ class WebCode(unittest.TestCase):
         driver.maximize_window()
         self.assertEqual("[OpenWrt Wiki] Welcome to the OpenWrt Project", driver.title, msg="Homepage testcase passed")
 
-    def write_database(self, file_name, release_date, download_link, local_file_location, sha256sum):
+    def write_database(self, filename, release_date, download_link, local_file_location, sha256sum, file_size):
         # The data extracted is writing into the database file
         dbdict_carrier = {}
         db_used = Database()
@@ -63,9 +80,13 @@ class WebCode(unittest.TestCase):
             if key == "Manufacturer":
                 dbdict_carrier[key] = "OpenWRT"
             elif key == "Fwfilename":
-                dbdict_carrier[key] = file_name
+                dbdict_carrier[key] = filename
             elif key == "Releasedate":
                 dbdict_carrier[key] = release_date
+            elif key == "Filesize":
+                dbdict_carrier[key] = file_size
+            elif key == "Lasteditdate":
+                dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))["Last Edit Date"]
             elif key == "Fwdownlink":
                 dbdict_carrier[key] = download_link
             elif key == "Fwfilelinktolocal":
@@ -79,7 +100,7 @@ class WebCode(unittest.TestCase):
             db_used.insert_data(dbdict_carrier)
             self.assertTrue(dbdict_carrier, msg="data inserted")
 
-    def down_ele_click(self, release_date, download_link, sha256sum):
+    def down_ele_click(self, release_date, download_link, sha256sum,file_size):
         # A fn for duplication Check for not to download the files if files exist in local machine
         filename = download_link.split('/')[-1].replace(" ", "_")
         path_to_download = r"{}\{}\OpenWRT\{}".format(self.path, self.down_file_path, self.driver.find_element(By.XPATH,
@@ -98,7 +119,7 @@ class WebCode(unittest.TestCase):
                             file.write(chunk)
                             file.flush()
                             os.fsync(file.fileno())
-            self.write_database(filename, release_date, download_link, local_file_path, sha256sum)
+            self.write_database(filename, release_date, download_link, local_file_path, sha256sum, file_size)
         else:
             print(f"The file is found in local repository, now {filename} will not be downloaded into local")
         return local_file_path
@@ -121,14 +142,14 @@ class WebCode(unittest.TestCase):
                         sha256sum = driver.find_element(By.XPATH,
                                                         "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='sh'])[{}]".format(
                                                             image_file + 1)).text
-                        # file_size = driver.find_element(By.XPATH,"(//th[text()='Image for your Device']/ancestor::tbody//td[@class='s'])[{}]".format(image_file + 1)).text
+                        file_size = driver.find_element(By.XPATH,"(//th[text()='Image for your Device']/ancestor::tbody//td[@class='s'])[{}]".format(image_file + 1)).text
                         release_date = driver.find_element(By.XPATH,
                                                            "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='d'])[{}]".format(
                                                                image_file + 1)).text
                         download_link = driver.find_element(By.XPATH,
                                                             "(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(
                                                                 image_file + 1)).get_attribute("href")
-                        local_file_path = self.down_ele_click(release_date, download_link, sha256sum)
+                        local_file_path = self.down_ele_click(release_date, download_link, sha256sum,file_size)
                         self.assertTrue(local_file_path, msg="Location exists")
                         self.assertTrue(file_name, msg="download element found")
             except NoSuchElementException:

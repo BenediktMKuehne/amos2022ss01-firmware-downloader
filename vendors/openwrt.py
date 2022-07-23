@@ -10,6 +10,10 @@ from selenium.webdriver.common.by import By
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import metadata_extractor
+from utils.modules_check import vendor_field
+from utils.Logs import get_logger
+logger = get_logger("vendors.openwrt")
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -20,8 +24,20 @@ class Openwrt:
         # All the required data is initialized in this function
         with open(os.path.join(parent_dir, 'config', 'config.json'), 'rb') as json_file:
             json_data = json.loads(json_file.read())
-            openwrt_data = json_data['openwrt']
-            self.url = openwrt_data['url']
+            dummy_openwrt_data = json_data['openwrt']
+            if vendor_field('openwrt', 'user') is False:
+                logger.error('<module : openwrt > -> user not present')
+            else:
+                self.email = vendor_field('openwrt', 'user')
+            if vendor_field('openwrt', 'password') is False:
+                logger.error('<module : openwrt > -> password not present')
+            else:
+                self.password = vendor_field('openwrt', 'password')
+            if vendor_field('openwrt', 'url') is False:
+                logger.error('<module : openwrt > -> url not present')
+                self.url = "https://openwrt.org/"
+            else:
+                self.url = vendor_field('openwrt', 'url')
             self.down_file_path = json_data['file_paths']['download_files_path']
         self.path = os.getcwd()
         self.driver = webdriver.Chrome()
@@ -33,6 +49,8 @@ class Openwrt:
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -52,7 +70,7 @@ class Openwrt:
         driver.implicitly_wait(10)  # seconds
         driver.maximize_window()
 
-    def write_database(self, filename, release_date, download_link, local_file_location, sha256sum):
+    def write_database(self, filename, release_date, download_link, local_file_location, sha256sum,file_size):
         # The data extracted is writing into the database file
         dbdict_carrier = {}
         db_used = Database()
@@ -63,6 +81,10 @@ class Openwrt:
                 dbdict_carrier[key] = filename
             elif key == "Releasedate":
                 dbdict_carrier[key] = release_date
+            elif key == "Filesize":
+                dbdict_carrier[key] = file_size
+            elif key == "Lasteditdate":
+                dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\","/")))["Last Edit Date"]
             elif key == "Fwdownlink":
                 dbdict_carrier[key] = download_link
             elif key == "Fwfilelinktolocal":
@@ -75,7 +97,7 @@ class Openwrt:
                 dbdict_carrier[key] = ''
         db_used.insert_data(dbdict_carrier)
 
-    def down_ele_click(self, release_date, download_link, sha256sum):
+    def down_ele_click(self, release_date, download_link, sha256sum,file_size):
         # A fn for duplication Check for not to download the files if files exist in local machine
         filename = download_link.split('/')[-1].replace(" ", "_")
         path_to_download = r"{}\{}\OpenWRT\{}".format(self.path, self.down_file_path, self.driver.find_element(By.XPATH,"(//h1/a)[last()]").get_attribute("href")[30:].replace("/", "\\"))
@@ -91,7 +113,7 @@ class Openwrt:
                             file.write(chunk)
                             file.flush()
                             os.fsync(file.fileno())
-            self.write_database(filename, release_date, download_link, local_file_path, sha256sum)
+            self.write_database(filename, release_date, download_link, local_file_path, sha256sum,file_size)
         return local_file_path
 
     def crawl_table(self):
@@ -110,16 +132,16 @@ class Openwrt:
                         sha256sum = driver.find_element(By.XPATH,
                                                         "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='sh'])[{}]".format(
                                                             image_file + 1)).text
-                        # file_size = driver.find_element(By.XPATH,
-                        #                                 "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='s'])[{}]".format(
-                        #                                     image_file + 1)).text
+                        file_size = driver.find_element(By.XPATH,
+                                                        "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='s'])[{}]".format(
+                                                            image_file + 1)).text
                         release_date = driver.find_element(By.XPATH,
                                                            "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='d'])[{}]".format(
                                                                image_file + 1)).text
                         download_link = driver.find_element(By.XPATH,
                                                             "(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(
                                                                 image_file + 1)).get_attribute("href")
-                        self.down_ele_click(release_date, download_link, sha256sum)
+                        self.down_ele_click(release_date, download_link, sha256sum,file_size)
             except NoSuchElementException:
                 self.crawl_table()
             driver.back()
