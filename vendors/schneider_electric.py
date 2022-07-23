@@ -6,6 +6,7 @@ import sys
 import traceback
 import json
 import inspect
+from datetime import datetime
 from urllib.parse import parse_qs, urlparse
 import requests
 from bs4 import BeautifulSoup
@@ -44,10 +45,13 @@ with open(CONFIG_PATH, "rb") as fp:
         API_URL = vendor_field('schneider_electric', 'apiurl')
 
 def download_single_file(url, file_path_to_save, fw_metadata):
-    logger.info("Downloading %s and saving as %s", url, file_path_to_save)
+    logger.debug('<module Schneider Electric> -> Downloading Firmware <%s> <%s>', fw_metadata['Fwfilename'], fw_metadata['Version'])
     resp = requests.get(url, allow_redirects=True)
     if resp.status_code != 200:
-        raise ValueError("Invalid Url or file not found")
+        logger.error('<%s> is invalid', url)
+
+    logger.debug('<%s> -> Downloading Firmware <%s>', url, file_path_to_save)
+    logger.debug('<Module Schneider Electric> -> Downloading Firmware From Web page <%s>', url)
     with open(file_path_to_save, "wb") as fp_:
         fp_.write(resp.content)
     if fw_metadata:
@@ -74,6 +78,8 @@ def write_metadata_to_db(metadata, db_path=None):
             fw_["Filesize"] = meta_data['File Size']
             fw_["Lasteditdate"] = meta_data['Last Edit Date']
         db_.insert_data(dbdictcarrier=fw_)
+        logger.info('<Metadata added to database>')
+        logger.debug('<%s> <Schneider Electric> <%s> <%s> <%s>', fw_['Fwfilename'], fw_['Modelname'], fw_['Version'], fw_['Releasedate'])
 
 def se_get_total_firmware_count(url):
     req = requests.get(url)
@@ -85,7 +91,7 @@ def se_get_total_firmware_count(url):
             inner_html =item.decode_contents()
             numbers = re.findall(r'\b\d+\b', inner_html)
             count = int(numbers[0])
-            logger.info("Found total %d firmwares", count)
+            logger.info("<Firmware Files Count>: %d", count)
             return count
     return count
 
@@ -162,6 +168,7 @@ def se_firmaware_parser(url, folder):
 #Try and Catch impelementation
 def main():
     try:
+        logger.info('<module Schneider Electric> -> Download Module started at <%s>', datetime.now())
         url = URL
         folder = DATA['file_paths']['download_files_path']
         dest = os.path.join(os.getcwd(), folder)

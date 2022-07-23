@@ -67,14 +67,14 @@ with open(CONFIG_PATH, "rb") as fp:
 def insert_into_db(fwdata):
     db_ = Database()
     db_.insert_data(dbdictcarrier=fwdata)
-    logger.info('<module : Ge> -> metadata added to database')
-    logger.debug('<%s><GE><%s><%s>', fwdata['Fwfilename'], fwdata['Modelname'], fwdata['Releasedate'])
+    logger.info('<Metadata added to database>')
+    logger.debug('<%s> <GE> <%s> <%s>', fwdata['Fwfilename'], fwdata['Modelname'], fwdata['Releasedate'])
 
 #download firmware image
 def download_file(data):
     logger.debug('<module GE> -> Downloading Firmware <%s>', data['data0'])
     local_uri = data["file_path_to_save"]
-    print(data)
+
     req_data = {
         'Fwfileid': 'FILE',
         'Fwfilename': data['data0'],
@@ -135,7 +135,6 @@ def download_file(data):
                 time.sleep(10)
                 driver.close()
                 if data['is_file_download'] is False:
-                    print(local_uri)
                     if os.path.isfile(local_uri):
                         req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
                         meta_data = metadata_extractor(local_uri.replace('\\', '/'))
@@ -168,7 +167,7 @@ def scraper_parse(url, base_url):
         items_temp = item.find_all("td")
         if len(items_temp):
             if items_temp[0].get_text().find(".zip") != -1 or items_temp[0].get_text().find(".mpk") != -1 or items_temp[0].get_text().find(".S28") != -1:
-                logger.debug('<count>: %d', len(items_temp))
+                logger.debug('<Firmware Files Count>: %d', len(items_temp))
                 for item_temp in items_temp:
                     if items_temp.index(item_temp) == 0:
                         link = item_temp.findChild("a").get("href")
