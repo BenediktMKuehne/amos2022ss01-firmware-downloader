@@ -97,7 +97,7 @@ class FirmwareUploader:
         print("Id not found for filename %s", filename)
         return None
 
-    def analysis(self, db_name, fwu):
+    def analysis(self, db_name):
         db_ = Database()
         db_.db_check()
         conn = sqlite3.connect(db_name)
@@ -113,7 +113,7 @@ class FirmwareUploader:
                         'version': file[4],
                         'vendor': file[2]
                     }
-                    is_analysis_start = fwu.start_fw_analysis(fw_metadata_1)
+                    is_analysis_start = self.start_fw_analysis(fw_metadata_1)
                     if is_analysis_start is True:
                         cursor.execute('''UPDATE FWDB SET Startedanalysisonembark = ? WHERE Fwfileid = ?''', (is_analysis_start, file[0]))
                         conn.commit()
@@ -122,7 +122,7 @@ class FirmwareUploader:
                         break
 
             if flag is True:
-                schedule.every(DATA['uploader']['analysis_interval']).minutes.do(self.analysis, db_name, fwu)
+                schedule.every(DATA['uploader']['analysis_interval']).minutes.do(self.analysis, db_name)
 
             while len(data_list_1) > 0:
                 schedule.run_pending()
@@ -163,4 +163,3 @@ class FirmwareUploader:
             print('SQLite error: %s' % (' '.join(er_.args)))
 
         conn.close()
-
