@@ -30,10 +30,9 @@ The software will only be applied to websites that do not object to automated do
 
 **Program Running Steps**
 **Requirements:**
-  Python
   Linux
   
 **Steps:**
   Run following command in root folder
-    1. sudo bash ./installer.sh
+    	` 1. sudo bash ./installer.sh`
 	` 2. python3 main.py --num-threads 4`
