@@ -1,15 +1,23 @@
 import os
+import sys
 import sqlite3
+import uuid
+import inspect
 from utils.Logs import get_logger
+
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+print(parent_dir)
 logger = get_logger("utils.database")
 
 
 # The Database class is defined to maintain the db functionalities like create_table, insert_table
 class Database:
 
-    def __init__(self):
+    def __init__(self, db_path="firmwaredatabase.db"):
         # The initialization function is available for all the methods with the db class
-        self.dbname = 'firmwaredatabase.db'
+        self.dbname = fr"{parent_dir}\utils\{db_path}"
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',
@@ -18,6 +26,8 @@ class Database:
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -46,20 +56,22 @@ class Database:
                             Version TEXT NOT NULL,
                             Type TEXT NOT NULL,
                             Releasedate TEXT,
+                            Filesize TEXT,
+                            Lasteditdate TEXT,
                             Checksum TEXT,
                             Embatested TEXT NOT NULL,
                             Embalinktoreport TEXT,
                             Embarklinktoreport TEXT,
                             Fwdownlink TEXT NOT NULL,
                             Fwfilelinktolocal TEXT NOT NULL,
-                            Fwadddata BLOB,
+                            Fwadddata TEXT,
                             Uploadedonembark BOOLEAN DEFAULT false,
                             Embarkfileid VARCHAR DEFAULT NULL,
                             Startedanalysisonembark BOOLEAN DEFAULT false)"""
         curs.execute(create_command)
         logger.info('The database is created successfully in the code repository with the command: %s.', create_command)
         conn.commit()
-        curs.close()
+        # curs.close()
 
     def db_check(self):
         # The function checks the db file, if not present it will create a db in the repo where database is used
@@ -76,27 +88,49 @@ class Database:
             logger.info('Connection details: %s.', conn)
             curs = conn.cursor()
             logger.info('A cursor is established on %s, with the details: %s.', self.dbname, curs)
-            select_command = "select * from FWDB"
-            curs.execute(select_command)
-            logger.info('The table FWDB is selected in the %s with the command: %s.', self.dbname, select_command)
-            records = len(curs.fetchall())
             dbdict = self.dbdict
             for key in dbdict:
                 dbdict[key] = dbdictcarrier[key]
                 logger.info('The %s is updated with the Key: %s and Value: %s.', self.dbname, key, dbdict[key])
-            dbdict['Fwfileid'] = f'FILE_{records + 1}'
-            logger.info("The db is updated with the Fwfileid. as %s.", dbdict['Fwfileid'])
-            # Currently, the local firmware id is represented as file extended by _ in increase by 1
-            insert_command = f'''INSERT INTO FWDB('{"','".join(map(str, dbdict.keys()))}')
-                                                    VALUES('{"','".join(map(str, dbdict.values()))}')'''
-            curs.execute(insert_command)
-            logger.info('The db is inserted with the command %s.', insert_command)
-            conn.commit()
-            logger.info('The db commited is with data %s.', str(dbdict))
+
+            if dbdict['Fwdownlink'] != '' and 'https://' in dbdict['Fwdownlink']:
+                print(dbdict['Fwdownlink'])
+                uuid_id = str(uuid.uuid5(uuid.NAMESPACE_URL, dbdict['Fwdownlink']))
+                print(uuid_id)
+            else:
+                print(dbdict['Fwdownlink'])
+                uuid_id = str(uuid.uuid1())
+                print(uuid_id)
+
+            if not os.path.isfile(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt'):
+                print(os.path.exists('{parent_dir}/utils/database_txt_file'))
+                os.mkdir(fr'{parent_dir}/utils/database_txt_file')
+                with open(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt', 'w', encoding="utf-8") as uuid_file:
+                    uuid_file.write('This file contains the UUID generated from download links & will be stored in DB.'
+                                    + '\n')
+
+            with open(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt', 'r', encoding="utf-8") as uuid_read:
+                data = uuid_read.read()
+            with open(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt', 'a', encoding="utf-8") as uuid_file:
+                # print(data.split('\n'))
+                if uuid_id not in data.split('\n'):
+                    logger.info("The data is not present with respect to Fwfileid so, the data will be added into DB")
+                    uuid_file.write(str(uuid_id + '\n'))
+                    dbdict['Fwfileid'] = uuid_id
+                    logger.info("The db is updated with the Fwfileid. as %s.", dbdict['Fwfileid'])
+                    columns = "','".join(map(str, dbdict.keys()))
+                    values = "','".join(map(str, dbdict.values()))
+                    insert_command = f"INSERT INTO FWDB('{columns}') VALUES('{values}')"
+                    curs.execute(insert_command)
+                    logger.info('The db is inserted with the command %s.', insert_command)
+                    conn.commit()
+                    logger.info('The db commited is with data %s.', str(dbdict))
+
             # Prints the data in db
             curs.execute('SELECT * FROM FWDB')
             print(curs.fetchall())
             curs.close()
+
         except KeyError as error:
             logger.error("Error writing to db with data dict as: %s and with error as: %s", str(dbdictcarrier), error)
             print(error)

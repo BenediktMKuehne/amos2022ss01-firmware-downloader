@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import json
+import inspect
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
@@ -12,7 +13,10 @@ from utils.database import Database
 from utils.check_duplicates import check_duplicates
 from utils.Logs import get_logger
 from utils.modules_check import config_check
-
+from utils.metadata_extractor import get_hash_value
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 logger = get_logger("vendors.ge")
@@ -21,7 +25,7 @@ links=[]
 USERNAME = ''
 PASSWORD = ''
 URL = ''
-CONFIG_PATH = os.path.join("config", "config.json")
+CONFIG_PATH = os.path.join(parent_dir, "config", "config.json")
 DATA={}
 with open(CONFIG_PATH, "rb") as fp:
     DATA = json.load(fp)
@@ -69,7 +73,8 @@ def insert_into_db(fwdata):
 #download firmware image
 def download_file(data):
     logger.debug('<module GE> -> Downloading Firmware <%s>', data['data0'])
-    local_uri = os.path.abspath(DATA['file_paths']['download_files_path'] + "/" + data['data0'])
+    local_uri = data["file_path_to_save"]
+    print(data)
     req_data = {
         'Fwfileid': 'FILE',
         'Fwfilename': data['data0'],
@@ -102,33 +107,14 @@ def download_file(data):
             with open(data['file_path_to_save'], "wb") as fp_:
                 fp_.write(resp.content)
             if data['is_file_download'] is False:
-                local_uri_ = os.path.abspath(DATA['file_paths']['download_files_path'] + "/" + data['data0'])
-                req_data_ = {
-                    'Fwfileid': 'FILE',
-                    'Fwfilename': data['data0'],
-                    'Manufacturer': 'GE',
-                    'Modelname': os.path.splitext(data['data0'])[0],
-                    'Version': '',
-                    'Type': '',
-                    'Releasedate': data['data1'],
-                    'Checksum': 'None',
-                    'Embatested': '',
-                    'Embalinktoreport': '',
-                    'Embarklinktoreport': '',
-                    'Fwdownlink': data['url'],
-                    'Fwfilelinktolocal': local_uri_,
-                    'Fwadddata': '',
-                    'Uploadedonembark': 0,
-                    'Embarkfileid': '',
-                    'Startedanalysisonembark': 0
-                }
-                insert_into_db(req_data_)
+                req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
+                insert_into_db(req_data)
         else:
-            logger.info("<%s> -> Downloading Firmware <%s>", data['url'], data['file_path_to_save'])
+            logger.info("<%s> -> Downloading Firmware <%s>", data['main_url'], data['file_path_to_save'])
             options = webdriver.ChromeOptions()
             prefs = {"download.default_directory" : data['file_path_to_save']}
             options.add_argument("headless")
-            options.add_experimental_option("prefs",prefs)
+            options.add_experimental_option("prefs", prefs)
             driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
             # Go to your page url
             try:
@@ -140,30 +126,13 @@ def download_file(data):
                 # Get button you are going to click by its id ( also you could us find_element_by_css_selector to get element by css selector)
                 driver.get(data['main_url'])
                 driver.execute_script(data['click'])
-                time.sleep(60)
+                time.sleep(10)
                 driver.close()
                 if data['is_file_download'] is False:
-                    local_uri_ = os.path.abspath(DATA['file_paths']['download_files_path'] + "/" + data['data0'] + "/" + data['data0'])
-                    req_data_ = {
-                        'Fwfileid': 'FILE',
-                        'Fwfilename': data['data0'],
-                        'Manufacturer': 'GE',
-                        'Modelname': os.path.splitext(data['data0'])[0],
-                        'Version': '',
-                        'Type': '',
-                        'Releasedate': data['data1'],
-                        'Checksum': 'None',
-                        'Embatested': '',
-                        'Embalinktoreport': '',
-                        'Embarklinktoreport': '',
-                        'Fwdownlink': data['url'],
-                        'Fwfilelinktolocal': local_uri_,
-                        'Fwadddata': '',
-                        'Uploadedonembark': False,
-                        'Embarkfileid': '',
-                        'Startedanalysisonembark': False
-                    }
-                    insert_into_db(req_data_)
+                    print(local_uri)
+                    if os.path.isfile(local_uri):
+                        req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
+                    insert_into_db(req_data)
             except Exception as er_:
                 logger.error("<module GE> Error in downloading: %s", data['url'])
                 raise ValueError('%s' % er_) from er_
@@ -173,7 +142,7 @@ def download_file(data):
 
 #parse html and start clean according to our need
 def scraper_parse(url, base_url):
-    dest = os.path.join(os.getcwd(), DATA['file_paths']['download_files_path'])
+    dest = os.path.join(parent_dir, DATA['file_paths']['download_files_path'])
     try:
         if not os.path.isdir(dest):
             os.mkdir(dest)
@@ -194,9 +163,7 @@ def scraper_parse(url, base_url):
                 for item_temp in items_temp:
                     if items_temp.index(item_temp) == 0:
                         link = item_temp.findChild("a").get("href")
-                        if link == "javascript:;":
-                            click = item_temp.findChild("a").get("onclick")
-                        file_path = os.path.join(dest, item_temp.get_text())
+                        file_path = ''
                         arg_data = {
                             'url': base_url + link,
                             'file_path_to_save': file_path,
@@ -210,7 +177,15 @@ def scraper_parse(url, base_url):
                             'is_file_download': False,
                             'folder': DATA['file_paths']['download_files_path']
                         }
-                        download_file(arg_data)
+                        if link == "javascript:;":
+                            click = item_temp.findChild("a").get("onclick")
+                            file_path = os.path.join(parent_dir, DATA['file_paths']['download_files_path'], item_temp.get_text(), item_temp.get_text())
+                            arg_data['file_path_to_save'] = file_path
+                            download_file(arg_data)
+                        else:
+                            file_path = os.path.join(parent_dir, DATA['file_paths']['download_files_path'], item_temp.get_text())
+                            arg_data['file_path_to_save'] = file_path
+                            download_file(arg_data)
                     sub_data.append(item_temp.get_text())
                 data.append(sub_data)
 

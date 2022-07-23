@@ -17,15 +17,15 @@ class ChromiumDownloader:
         response = requests.get(self.latest_release_url, allow_redirects=True).text
         download_url = "https://chromedriver.storage.googleapis.com/{}/chromedriver_win32.zip".format(response)
         print(response, download_url)
-        chromium_zip = wget.download(download_url, 'chromedriver.zip')
+        chromium_zip = wget.download(download_url, fr'{os.getcwd()}/chromedriver.zip')
         with zipfile.ZipFile(chromium_zip, 'r') as zip_ref:
             zip_ref.extractall()
         os.remove(chromium_zip)
 
     def executor(self):
         # Checksum for chromedriver
-        if os.path.exists("chromedriver.exe"):
-            os.remove("chromedriver.exe")
+        if os.path.exists(fr'{os.getcwd()}/chromedriver.exe'):
+            os.remove(fr'{os.getcwd()}/chromedriver.exe')
         if "chromedriver.exe" not in os.listdir(os.getcwd()):
             print("chromedriver.exe is not present in local path, so installing chromedriver")
             self.load_and_extract()
