@@ -1,8 +1,6 @@
 import os
 import json
 import sqlite3
-import time
-import schedule
 import requests
 from bs4 import BeautifulSoup
 from utils.database import Database
