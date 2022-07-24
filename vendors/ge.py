@@ -13,7 +13,7 @@ from utils.database import Database
 from utils.check_duplicates import check_duplicates
 from utils.Logs import get_logger
 from utils.modules_check import config_check
-from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import get_hash_value, metadata_extractor
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -67,29 +67,31 @@ with open(CONFIG_PATH, "rb") as fp:
 def insert_into_db(fwdata):
     db_ = Database()
     db_.insert_data(dbdictcarrier=fwdata)
-    logger.info('<module : Ge> -> metadata added to database')
-    logger.debug('<%s><GE><%s><%s>', fwdata['Fwfilename'], fwdata['Modelname'], fwdata['Releasedate'])
+    print(fwdata)
+    logger.info('<Metadata added to database>')
+    logger.debug('<%s> <GE> <%s> <%s>', fwdata['Fwfilename'], fwdata['Modelname'], fwdata['Releasedate'])
 
 #download firmware image
 def download_file(data):
     logger.debug('<module GE> -> Downloading Firmware <%s>', data['data0'])
     local_uri = data["file_path_to_save"]
-    print(data)
     req_data = {
-        'Fwfileid': 'FILE',
+        'Fwfileid': '',
         'Fwfilename': data['data0'],
-		'Manufacturer': 'GE',
-		'Modelname': os.path.splitext(data['data0'])[0],
-		'Version': '',
-		'Type': '',
-		'Releasedate': data['data1'],
-		'Checksum': 'None',
-		'Embatested': '',
-		'Embalinktoreport': '',
-		'Embarklinktoreport': '',
-		'Fwdownlink': data['url'],
-		'Fwfilelinktolocal': local_uri,
-		'Fwadddata': '',
+        'Manufacturer': 'GE',
+        'Modelname': os.path.splitext(data['data0'])[0],
+        'Version': '',
+        'Type': '',
+        'Releasedate': data['data1'],
+        'Filesize': '',
+        'Lasteditdate': '',
+        'Checksum': 'None',
+        'Embatested': '',
+        'Embalinktoreport': '',
+        'Embarklinktoreport': '',
+        'Fwdownlink': data['url'],
+        'Fwfilelinktolocal': local_uri,
+        'Fwadddata': '',
         'Uploadedonembark': '',
         'Embarkfileid': '',
         'Startedanalysisonembark': ''
@@ -107,7 +109,12 @@ def download_file(data):
             with open(data['file_path_to_save'], "wb") as fp_:
                 fp_.write(resp.content)
             if data['is_file_download'] is False:
-                req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
+                print(req_data)
+                if os.path.isfile(local_uri):
+                    req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
+                    meta_data = metadata_extractor(local_uri.replace('\\', '/'))
+                    req_data['Filesize'] = meta_data['File Size']
+                    req_data['Lasteditdate'] = meta_data['Last Edit Date']
                 insert_into_db(req_data)
         else:
             logger.info("<%s> -> Downloading Firmware <%s>", data['main_url'], data['file_path_to_save'])
@@ -131,7 +138,14 @@ def download_file(data):
                 if data['is_file_download'] is False:
                     print(local_uri)
                     if os.path.isfile(local_uri):
-                        req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
+                        uri = local_uri
+                        print(local_uri)
+                        print(uri)
+                        req_data['Checksum'] = get_hash_value(uri.replace('\\', '/'))
+                        meta_data = metadata_extractor(uri.replace('\\', '/'))
+                        req_data['Filesize'] = meta_data['File Size']
+                        req_data['Lasteditdate'] = meta_data['Last Edit Date']
+                        print(req_data)
                     insert_into_db(req_data)
             except Exception as er_:
                 logger.error("<module GE> Error in downloading: %s", data['url'])
@@ -159,7 +173,7 @@ def scraper_parse(url, base_url):
         items_temp = item.find_all("td")
         if len(items_temp):
             if items_temp[0].get_text().find(".zip") != -1 or items_temp[0].get_text().find(".mpk") != -1 or items_temp[0].get_text().find(".S28") != -1:
-                logger.debug('<count>: %d', len(items_temp))
+                logger.debug('<Firmware Files Count>: %d', len(items_temp))
                 for item_temp in items_temp:
                     if items_temp.index(item_temp) == 0:
                         link = item_temp.findChild("a").get("href")
