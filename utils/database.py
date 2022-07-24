@@ -17,7 +17,7 @@ class Database:
 
     def __init__(self, db_path="firmwaredatabase.db"):
         # The initialization function is available for all the methods with the db class
-        self.dbname = db_path
+        self.dbname = fr"{parent_dir}/utils/{db_path}"
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',
