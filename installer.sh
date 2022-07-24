@@ -24,7 +24,6 @@ if [[ $is_python_installed == 0 ]] ; then
 	apt-get install -y python3.8
 fi
 
-apt-get install -y python-pip python3-pip
 pip install -U pip
 # to install a requirements.txt file:
 pip install -r requirements.txt
