@@ -172,7 +172,7 @@ class FoscamHomeSecurity:
                         logger.debug('digit: %s', count)
                         dbdict_carrier = {}
                         db_used = Database()
-                        logger.debug('<%s> <%s> <%s> <%s> <%s>', web_file_name, 'HoneyWell', web_file_name, version,
+                        logger.debug('<%s> <%s> <%s> <%s> <%s>', web_file_name, 'Foscam', web_file_name, version,
                                      build_date)
                         for key in self.dbdict:
                             if key == "Manufacturer":
