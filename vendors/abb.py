@@ -42,6 +42,7 @@ def download_single_file(file_metadata):
     resp = requests.get(url, allow_redirects=True)
     if resp.status_code != 200:
         logger.error('<%s> is invalid', url)
+        raise ValueError('<%s> is invalid' % url)
     final_obj_url = resp.request.url
     file_name = urlparse(final_obj_url).path.split("/")[-1].replace("%20", " ")
     old_file_name_list = file_metadata["Fwfilelinktolocal"].split("/")
@@ -73,9 +74,10 @@ def write_metadata_to_db(metadata):
             meta_data = metadata_extractor(fw_["Fwfilelinktolocal"])
             fw_["Filesize"] = meta_data['File Size']
             fw_["Lasteditdate"] = meta_data['Last Edit Date']
-        db_.insert_data(dbdictcarrier=fw_)
-        logger.info('<Metadata added to database>')
-        logger.debug('<%s> <ABB> <%s> <%s> <%s>', fw_['Fwfilename'], fw_['Modelname'], fw_['Version'], fw_['Releasedate'])
+
+            db_.insert_data(dbdictcarrier=fw_)
+            logger.info('<Metadata added to database>')
+            logger.debug('<%s> <ABB> <%s> <%s> <%s>', fw_['Fwfilename'], fw_['Modelname'], fw_['Version'], fw_['Releasedate'])
 
 def se_get_total_firmware_count(url):
     req_body = {
@@ -158,7 +160,7 @@ def main():
     metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
     logger.info("Printing first transformed document metadata")
     logger.info(json.dumps(metadata[0], indent=4))
-    download_list_files(metadata, max_files=20)
+    download_list_files(metadata, max_files=5)
 
 
 if __name__ == "__main__":

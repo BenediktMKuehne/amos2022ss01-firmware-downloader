@@ -13,7 +13,7 @@
   },
   "foscam": {
     "interval": 120,
-    "ignore": true,
+    "ignore": false,
     "url": "https://www.foscam.com/downloads/index.html",
     "user": "none",
     "password": "none"
@@ -48,7 +48,7 @@
   },
   "openwrt": {
     "interval": 120,
-    "ignore": true,
+    "ignore": false,
     "url": "https://openwrt.org/",
     "user": "none",
     "password": "none"
@@ -153,21 +153,21 @@
   },
   "ge": {
     "interval": 120,
-    "ignore": true,
+    "ignore": false,
     "url": "https://www.gegridsolutions.com",
     "user": "tariqmagsi125@gmail.com",
     "password": "Cs!-56478"
   },
   "abb": {
     "interval": 120,
-    "ignore": true,
+    "ignore": false,
     "url": "https://discoveryapi.library.abb.com/api/public/documents",
     "user": "none",
     "password": "none"
   },
   "schneider_electric": {
     "interval": 120,
-    "ignore": true,
+    "ignore": false,
     "apiurl": "https://www.se.com/ww/en/download/doc-group-type/3541958-Software%20&%20Firmware/resultViewCahnge/resultListAjax",
     "url": "https://www.se.com/ww/en/download/doc-group-type/3541958-Software%20&%20Firmware/?docType=1555893-Firmware&language=en_GB-English&sortByField=Popularityy",
     "user": "",

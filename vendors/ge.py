@@ -67,6 +67,7 @@ with open(CONFIG_PATH, "rb") as fp:
 def insert_into_db(fwdata):
     db_ = Database()
     db_.insert_data(dbdictcarrier=fwdata)
+    print(fwdata)
     logger.info('<Metadata added to database>')
     logger.debug('<%s> <GE> <%s> <%s>', fwdata['Fwfilename'], fwdata['Modelname'], fwdata['Releasedate'])
 
@@ -74,9 +75,8 @@ def insert_into_db(fwdata):
 def download_file(data):
     logger.debug('<module GE> -> Downloading Firmware <%s>', data['data0'])
     local_uri = data["file_path_to_save"]
-
     req_data = {
-        'Fwfileid': 'FILE',
+        'Fwfileid': '',
         'Fwfilename': data['data0'],
         'Manufacturer': 'GE',
         'Modelname': os.path.splitext(data['data0'])[0],
@@ -109,6 +109,7 @@ def download_file(data):
             with open(data['file_path_to_save'], "wb") as fp_:
                 fp_.write(resp.content)
             if data['is_file_download'] is False:
+                print(req_data)
                 if os.path.isfile(local_uri):
                     req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
                     meta_data = metadata_extractor(local_uri.replace('\\', '/'))
@@ -135,11 +136,16 @@ def download_file(data):
                 time.sleep(10)
                 driver.close()
                 if data['is_file_download'] is False:
+                    print(local_uri)
                     if os.path.isfile(local_uri):
-                        req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
-                        meta_data = metadata_extractor(local_uri.replace('\\', '/'))
+                        uri = local_uri
+                        print(local_uri)
+                        print(uri)
+                        req_data['Checksum'] = get_hash_value(uri.replace('\\', '/'))
+                        meta_data = metadata_extractor(uri.replace('\\', '/'))
                         req_data['Filesize'] = meta_data['File Size']
                         req_data['Lasteditdate'] = meta_data['Last Edit Date']
+                        print(req_data)
                     insert_into_db(req_data)
             except Exception as er_:
                 logger.error("<module GE> Error in downloading: %s", data['url'])
