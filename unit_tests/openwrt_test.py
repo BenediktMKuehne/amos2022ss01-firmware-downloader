@@ -109,7 +109,7 @@ class WebCode(unittest.TestCase):
     def down_ele_click(self, release_date, download_link, sha256sum):
         # A fn for duplication Check for not to download the files if files exist in local machine
         filename = download_link.split('/')[-1].replace(" ", "_")
-        path_to_download = r"{}\{}\OpenWRT\{}".format(self.path, self.down_file_path, self.driver.find_element(
+        path_to_download = r"{}\unit_tests\{}\OpenWRT\{}".format(parent_dir, self.down_file_path, self.driver.find_element(
             By.XPATH, "(//h1/a)[last()]").get_attribute("href")[30:].replace("/", "\\"))
         local_file_path = os.path.join(path_to_download.replace('\\', '/'), filename)
         if not os.path.isfile(local_file_path):
