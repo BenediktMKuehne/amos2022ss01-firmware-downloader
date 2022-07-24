@@ -56,7 +56,6 @@ class FirmwareUploader:
             "firmware_remove": "on"
         }
         resp = requests.post(self.start_analysis_url, data=data, cookies=self.cookies)
-        print(resp)
         if resp.status_code == 200:
             print("Started firmware analysis successfully")
             return True
@@ -102,7 +101,6 @@ class FirmwareUploader:
         db_.db_check()
         conn = sqlite3.connect(db_name)
         cursor = conn.cursor()
-        flag = False
         try:
             cursor.execute("select * from FWDB WHERE Uploadedonembark=1 AND Startedanalysisonembark=''")
             data_list_1 = cursor.fetchall()
@@ -117,22 +115,11 @@ class FirmwareUploader:
                     if is_analysis_start is True:
                         cursor.execute('''UPDATE FWDB SET Startedanalysisonembark = ? WHERE Fwfileid = ?''', (is_analysis_start, file[0]))
                         conn.commit()
-                    else:
-                        flag = True
-                        break
-
-            if flag is True:
-                schedule.every(DATA['uploader']['analysis_interval']).minutes.do(self.analysis, db_name)
-
-            while len(data_list_1) > 0:
-                schedule.run_pending()
-                time.sleep(1)
 
         except sqlite3.Error as er_:
             print('SQLite error: %s' % (' '.join(er_.args)))
 
         conn.close()
-
 
     def anaylise_data_file(self, db_name):
         db_ = Database()
@@ -158,8 +145,8 @@ class FirmwareUploader:
                         if fw_metadata["id"] is not None:
                             cursor.execute('''UPDATE FWDB SET Embarkfileid = ? WHERE Fwfileid = ?''', (fw_metadata["id"], file[0]))
                             conn.commit()
+            conn.close()
             self.analysis(db_name)
+
         except sqlite3.Error as er_:
             print('SQLite error: %s' % (' '.join(er_.args)))
-
-        conn.close()

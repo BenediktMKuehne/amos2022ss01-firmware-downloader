@@ -77,9 +77,9 @@ def write_metadata_to_db(metadata, db_path=None):
             meta_data = metadata_extractor(fw_["Fwfilelinktolocal"])
             fw_["Filesize"] = meta_data['File Size']
             fw_["Lasteditdate"] = meta_data['Last Edit Date']
-        db_.insert_data(dbdictcarrier=fw_)
-        logger.info('<Metadata added to database>')
-        logger.debug('<%s> <Schneider Electric> <%s> <%s> <%s>', fw_['Fwfilename'], fw_['Modelname'], fw_['Version'], fw_['Releasedate'])
+            db_.insert_data(dbdictcarrier=fw_)
+            logger.info('<Metadata added to database>')
+            logger.debug('<%s> <Schneider Electric> <%s> <%s> <%s>', fw_['Fwfilename'], fw_['Modelname'], fw_['Version'], fw_['Releasedate'])
 
 def se_get_total_firmware_count(url):
     req = requests.get(url)
@@ -181,7 +181,7 @@ def main():
         api_url = API_URL
         raw_fw_list = get_firmware_data_using_api(api_url, total_fw, 50) #50 is max fw_per_page
         metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
-        download_list_files(metadata, 10) # download max 10 files
+        download_list_files(metadata, 2) # download max 10 files
     except Exception as general_exception:
         logger.error("%s", general_exception)
         traceback.print_exc(file=sys.stdout)
