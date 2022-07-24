@@ -75,7 +75,6 @@ def insert_into_db(fwdata):
 def download_file(data):
     logger.debug('<module GE> -> Downloading Firmware <%s>', data['data0'])
     local_uri = data["file_path_to_save"]
-
     req_data = {
         'Fwfileid': '',
         'Fwfilename': data['data0'],
@@ -116,7 +115,7 @@ def download_file(data):
                     meta_data = metadata_extractor(local_uri.replace('\\', '/'))
                     req_data['Filesize'] = meta_data['File Size']
                     req_data['Lasteditdate'] = meta_data['Last Edit Date']
-                    insert_into_db(req_data)
+                insert_into_db(req_data)
         else:
             logger.info("<%s> -> Downloading Firmware <%s>", data['main_url'], data['file_path_to_save'])
             options = webdriver.ChromeOptions()
@@ -137,12 +136,17 @@ def download_file(data):
                 time.sleep(10)
                 driver.close()
                 if data['is_file_download'] is False:
+                    print(local_uri)
                     if os.path.isfile(local_uri):
-                        req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
-                        meta_data = metadata_extractor(local_uri.replace('\\', '/'))
+                        uri = local_uri
+                        print(local_uri)
+                        print(uri)
+                        req_data['Checksum'] = get_hash_value(uri.replace('\\', '/'))
+                        meta_data = metadata_extractor(uri.replace('\\', '/'))
                         req_data['Filesize'] = meta_data['File Size']
                         req_data['Lasteditdate'] = meta_data['Last Edit Date']
-                        insert_into_db(req_data)
+                        print(req_data)
+                    insert_into_db(req_data)
             except Exception as er_:
                 logger.error("<module GE> Error in downloading: %s", data['url'])
                 raise ValueError('%s' % er_) from er_
