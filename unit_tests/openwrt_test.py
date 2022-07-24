@@ -9,10 +9,10 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from utils.database import Database
-from utils.metadata_extractor import get_hash_value
 from utils.metadata_extractor import metadata_extractor
 from utils.modules_check import vendor_field
 from utils.Logs import get_logger
+
 logger = get_logger("vendors.openwrt")
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -79,8 +79,6 @@ class WebCode(unittest.TestCase):
         # The data extracted is writing into the database file
         dbdict_carrier = {}
         db_used = Database()
-        dbdict_carrier = {}
-        db_used = Database()
         metadata = metadata_extractor(str(local_file_location.replace("\\", "/")))
         for key in self.dbdict:
             if key == "Manufacturer":
@@ -111,9 +109,8 @@ class WebCode(unittest.TestCase):
     def down_ele_click(self, release_date, download_link, sha256sum):
         # A fn for duplication Check for not to download the files if files exist in local machine
         filename = download_link.split('/')[-1].replace(" ", "_")
-        path_to_download = r"{}\{}\OpenWRT\{}".format(self.path, self.down_file_path, self.driver.find_element(By.XPATH,
-                                                                                                               "(//h1/a)[last()]").get_attribute(
-            "href")[30:].replace("/", "\\"))
+        path_to_download = r"{}\{}\OpenWRT\{}".format(self.path, self.down_file_path, self.driver.find_element(
+            By.XPATH, "(//h1/a)[last()]").get_attribute("href")[30:].replace("/", "\\"))
         local_file_path = os.path.join(path_to_download.replace('\\', '/'), filename)
         if not os.path.isfile(local_file_path):
             if not os.path.exists(path_to_download):
@@ -145,7 +142,8 @@ class WebCode(unittest.TestCase):
                     image_files = driver.find_elements(By.XPATH,
                                                        "//th[text()='Image for your Device']/ancestor::tbody//td/a")
                     for image_file in range(len(image_files)):
-                        file_name = driver.find_element(By.XPATH,"(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(image_file + 1))
+                        file_name = driver.find_element(
+                            By.XPATH, "(//th[text()='Image for your ""Device']/ancestor::tbody//td/a)[{}]".format(image_file + 1))
                         sha256sum = driver.find_element(By.XPATH,
                                                         "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='sh'])[{}]".format(
                                                             image_file + 1)).text
@@ -180,7 +178,7 @@ class WebCode(unittest.TestCase):
         driver.find_element(By.LINK_TEXT, 'Stable Release builds').click()
         self.assertEqual("Index of /releases/", driver.title,
                          msg="Stable Release builds testcase passed")
-        self.assertEqual(self.crawl_table(),"Passed")
+        self.assertEqual(self.crawl_table(), "Passed")
 
     def tearDown(self):
         self.driver.quit()

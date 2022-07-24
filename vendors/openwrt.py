@@ -9,10 +9,10 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
-from utils.metadata_extractor import get_hash_value
 from utils.metadata_extractor import metadata_extractor
 from utils.modules_check import vendor_field
 from utils.Logs import get_logger
+
 logger = get_logger("vendors.openwrt")
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
@@ -77,7 +77,7 @@ class Openwrt:
         # The data extracted is writing into the database file
         dbdict_carrier = {}
         db_used = Database()
-        metadata = metadata_extractor(str(local_file_location.replace("\\","/")))
+        metadata = metadata_extractor(str(local_file_location.replace("\\", "/")))
         for key in self.dbdict:
             if key == "Manufacturer":
                 dbdict_carrier[key] = "OpenWRT"
@@ -93,7 +93,7 @@ class Openwrt:
                 dbdict_carrier[key] = download_link
             elif key == "Fwfilelinktolocal":
                 dbdict_carrier[key] = str(local_file_location.replace("\\", "/"))
-            elif key =="Checksum":
+            elif key == "Checksum":
                 dbdict_carrier[key] = metadata["Hash Value"]
             elif key == "Fwadddata":
                 dbdict_carrier[key] = "sha256sum = " + sha256sum
@@ -106,7 +106,8 @@ class Openwrt:
     def down_ele_click(self, release_date, download_link, sha256sum):
         # A fn for duplication Check for not to download the files if files exist in local machine
         filename = download_link.split('/')[-1].replace(" ", "_")
-        path_to_download = r"{}\{}\OpenWRT\{}".format(self.path, self.down_file_path, self.driver.find_element(By.XPATH,"(//h1/a)[last()]").get_attribute("href")[30:].replace("/", "\\"))
+        path_to_download = r"{}\{}\OpenWRT\{}".format(self.path, self.down_file_path, self.driver.find_element(
+            By.XPATH, "(//h1/a)[last()]").get_attribute("href")[30:].replace("/", "\\"))
         local_file_path = os.path.join(path_to_download.replace('\\', '/'), filename)
         if not os.path.isfile(local_file_path):
             if not os.path.exists(path_to_download):
@@ -135,7 +136,7 @@ class Openwrt:
                     image_files = driver.find_elements(By.XPATH,
                                                        "//th[text()='Image for your Device']/ancestor::tbody//td/a")
                     for image_file in range(len(image_files)):
-                        #file_name = driver.find_element(By.XPATH,"(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(image_file + 1))
+                        # file_name = driver.find_element(By.XPATH,"(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(image_file + 1))
                         sha256sum = driver.find_element(By.XPATH,
                                                         "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='sh'])[{}]".format(
                                                             image_file + 1)).text
