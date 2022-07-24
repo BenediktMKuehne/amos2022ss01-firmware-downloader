@@ -15,7 +15,7 @@ from selenium.webdriver.common.by import By
 
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
-from utils.chromium_downloader import ChromiumDownloader
+# from utils.chromium_downloader import ChromiumDownloader
 
 # from vendors.foscam import FoscamHomeSecurity
 
@@ -208,5 +208,5 @@ class FoscamHomeSecurityTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    ChromiumDownloader().executor()
+    # ChromiumDownloader().executor()
     unittest.main()
