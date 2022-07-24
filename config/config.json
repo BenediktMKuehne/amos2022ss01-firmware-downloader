@@ -1,10 +1,11 @@
 {
   "uploader": {
-    "username": "apiuser",
-    "password": "GpY8V3d25G3gaZg",
+    "username": "test",
+    "password": "test",
     "auth_url": "http://embark.local",
     "upload_fw_url": "http://embark.local/uploader/save/",
-    "start_analysis_url": "http://embark.local/uploader/start/"
+    "start_analysis_url": "http://embark.local/uploader/start/",
+    "analysis_interval": 5
   },
   "file_paths": {
     "download_files_path": "Downloads",

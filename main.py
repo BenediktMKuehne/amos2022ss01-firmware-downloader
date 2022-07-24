@@ -16,11 +16,17 @@ parser.add_argument("--num-threads", type=int, default=2, help="Number of parall
 args = parser.parse_args()
 VENDORS_FILE = 'vendors'
 
+MODULES_STATUS = {}
 
 def runner(mod):
+    MODULES_STATUS[mod] = 'running'
+    print(MODULES_STATUS)
     os.system("python vendors/" + mod + ".py")
-    fw_ = FirmwareUploader()
-    fw_.anaylise_data_file("firmwaredatabase.db")
+    MODULES_STATUS[mod] = 'finished'
+    print(MODULES_STATUS)
+    if len(list(set(list(MODULES_STATUS.values())))) == 1:
+        fw_ = FirmwareUploader()
+        fw_.anaylise_data_file("firmwaredatabase.db")
 
 
 def executor_job(mod_, executor):
@@ -48,14 +54,15 @@ def get_modules(skip):
                 if config[mod.split('.')[0]]["ignore"] is True and skip is True:
                     mods.append(mod.split('.')[0])
                 elif config[mod.split('.')[0]]["ignore"] is False and skip is False:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
             else:
                 if config['default']['ignore'] is True and skip is True:
                     mods.append(mod.split('.')[0])
                 elif config['default']['ignore'] is False and skip is False:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
     return mods
-
 
 if __name__ == "__main__":
     logger.info("Starting runner...")

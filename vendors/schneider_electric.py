@@ -6,13 +6,14 @@ import sys
 import traceback
 import json
 import inspect
+from datetime import datetime
 from urllib.parse import parse_qs, urlparse
 import requests
 from bs4 import BeautifulSoup
 from utils.check_duplicates import check_duplicates, Database
 from utils.Logs import get_logger
 from utils.modules_check import vendor_field
-from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import get_hash_value, metadata_extractor
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -44,10 +45,13 @@ with open(CONFIG_PATH, "rb") as fp:
         API_URL = vendor_field('schneider_electric', 'apiurl')
 
 def download_single_file(url, file_path_to_save, fw_metadata):
-    logger.info("Downloading %s and saving as %s", url, file_path_to_save)
+    logger.debug('<module Schneider Electric> -> Downloading Firmware <%s> <%s>', fw_metadata['Fwfilename'], fw_metadata['Version'])
     resp = requests.get(url, allow_redirects=True)
     if resp.status_code != 200:
-        raise ValueError("Invalid Url or file not found")
+        logger.error('<%s> is invalid', url)
+
+    logger.debug('<%s> -> Downloading Firmware <%s>', url, file_path_to_save)
+    logger.debug('<Module Schneider Electric> -> Downloading Firmware From Web page <%s>', url)
     with open(file_path_to_save, "wb") as fp_:
         fp_.write(resp.content)
     if fw_metadata:
@@ -68,21 +72,28 @@ def write_metadata_to_db(metadata, db_path=None):
     else:
         db_ = Database()
     for fw_ in metadata:
-        fw_["Checksum"] = get_hash_value(fw_["Fwfilelinktolocal"])
-        db_.insert_data(dbdictcarrier=fw_)
+        if os.path.isfile(fw_["Fwfilelinktolocal"]):
+            fw_["Checksum"] = get_hash_value(fw_["Fwfilelinktolocal"])
+            meta_data = metadata_extractor(fw_["Fwfilelinktolocal"])
+            fw_["Filesize"] = meta_data['File Size']
+            fw_["Lasteditdate"] = meta_data['Last Edit Date']
+            db_.insert_data(dbdictcarrier=fw_)
+            logger.info('<Metadata added to database>')
+            logger.debug('<%s> <Schneider Electric> <%s> <%s> <%s>', fw_['Fwfilename'], fw_['Modelname'], fw_['Version'], fw_['Releasedate'])
 
 def se_get_total_firmware_count(url):
     req = requests.get(url)
     soup = BeautifulSoup(req.text, 'html.parser')
     items = soup.find_all("label", class_="dn-check dn-selected")
+    count = 0
     for item in items:
         if item.get("for") == "docTypeFilters-1555893":
             inner_html =item.decode_contents()
             numbers = re.findall(r'\b\d+\b', inner_html)
             count = int(numbers[0])
-            logger.info("Found total %d firmwares", count)
+            logger.info("<Firmware Files Count>: %d", count)
             return count
-    return int(numbers[0])
+    return count
 
 def get_firmware_data_using_api(url, fw_count, fw_per_page):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -107,20 +118,23 @@ def get_firmware_data_using_api(url, fw_count, fw_per_page):
 def transform_metadata_format_ours(raw_data, local_storage_dir="."):
     fw_mod_list = []
     for fw_ in raw_data:
+        local_link = os.path.join(local_storage_dir, parse_qs(urlparse(fw_.get("downloadUrl")).query, keep_blank_values=True).get("p_File_Name", list(str(uuid.uuid4())))[0].replace(" ", "_").replace("'", ""))
         fw_mod = {
-            'Fwfileid': 'FILE',
-            'Fwfilename': str(fw_.get("title", "").replace("'", "").replace(" ", "_")),
+            'Fwfileid': '',
+            'Fwfilename': local_link.split("\\")[-1],
             'Manufacturer': 'schneider_electric',
             'Modelname': str(fw_.get("title", "").replace("'", "").replace(" ", "_")),
             'Version': str(fw_.get("version", "").replace(" ", "_")),
             'Type': str(fw_.get("documentTypeEnglishLabel", "").replace(" ", "_")),
             'Releasedate': fw_.get("docDate", ""),
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
             'Embarklinktoreport': '',
             'Fwdownlink': "https:" + fw_.get("downloadUrl", ""),
-            'Fwfilelinktolocal': os.path.join(local_storage_dir, parse_qs(urlparse(fw_.get("downloadUrl")).query, keep_blank_values=True).get("p_File_Name", list(str(uuid.uuid4())))[0].replace(" ", "_").replace("'", "") ),
+            'Fwfilelinktolocal': local_link,
             'Fwadddata': '',
             'Uploadedonembark': '',
             'Embarkfileid': '',
@@ -154,6 +168,7 @@ def se_firmaware_parser(url, folder):
 #Try and Catch impelementation
 def main():
     try:
+        logger.info('<module Schneider Electric> -> Download Module started at <%s>', datetime.now())
         url = URL
         folder = DATA['file_paths']['download_files_path']
         dest = os.path.join(os.getcwd(), folder)
@@ -166,7 +181,7 @@ def main():
         api_url = API_URL
         raw_fw_list = get_firmware_data_using_api(api_url, total_fw, 50) #50 is max fw_per_page
         metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
-        download_list_files(metadata, 10) # download max 10 files
+        download_list_files(metadata, max_files=-1) # download max n files
     except Exception as general_exception:
         logger.error("%s", general_exception)
         traceback.print_exc(file=sys.stdout)
