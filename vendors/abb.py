@@ -160,7 +160,7 @@ def main():
     metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
     logger.info("Printing first transformed document metadata")
     logger.info(json.dumps(metadata[0], indent=4))
-    download_list_files(metadata, max_files=-1)
+    download_list_files(metadata, max_files=5)
 
 
 if __name__ == "__main__":
