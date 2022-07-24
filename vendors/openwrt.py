@@ -40,6 +40,7 @@ class Openwrt:
             else:
                 logger.error('<module : openwrt > -> url not present')
                 self.url = "https://openwrt.org/"
+                logger.info('<module : openwrt > -> using hardcode url')
             self.down_file_path = json_data['file_paths']['download_files_path']
         self.path = os.getcwd()
         self.driver = webdriver.Chrome()
@@ -76,6 +77,7 @@ class Openwrt:
         # The data extracted is writing into the database file
         dbdict_carrier = {}
         db_used = Database()
+        metadata = metadata_extractor(str(local_file_location.replace("\\","/")))
         for key in self.dbdict:
             if key == "Manufacturer":
                 dbdict_carrier[key] = "OpenWRT"
@@ -84,20 +86,22 @@ class Openwrt:
             elif key == "Releasedate":
                 dbdict_carrier[key] = release_date
             elif key == "Filesize":
-                dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\","/")))["File Size"]
+                dbdict_carrier[key] = metadata["File Size"]
             elif key == "Lasteditdate":
-                dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\","/")))["Last Edit Date"]
+                dbdict_carrier[key] = metadata["Last Edit Date"]
             elif key == "Fwdownlink":
                 dbdict_carrier[key] = download_link
             elif key == "Fwfilelinktolocal":
                 dbdict_carrier[key] = str(local_file_location.replace("\\", "/"))
             elif key =="Checksum":
-                dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
+                dbdict_carrier[key] = metadata["Hash Value"]
             elif key == "Fwadddata":
                 dbdict_carrier[key] = "sha256sum = " + sha256sum
             else:
                 dbdict_carrier[key] = ''
         db_used.insert_data(dbdict_carrier)
+        logger.info('<Metadata added to database>')
+        logger.debug('{}: Openwrt: {}'.format(dbdict_carrier['Fwfilename'], dbdict_carrier['Releasedate']))
 
     def down_ele_click(self, release_date, download_link, sha256sum):
         # A fn for duplication Check for not to download the files if files exist in local machine
@@ -115,8 +119,9 @@ class Openwrt:
                             file.write(chunk)
                             file.flush()
                             os.fsync(file.fileno())
-            logger.info("Downloading %s and saving as %s ", download_link,str(local_file_path))
             self.write_database(filename, release_date, download_link, local_file_path, sha256sum)
+            logger.debug("Openwrt: Downloading firmware {}".format(filename))
+            logger.debug("{}: Downloading firmware {}".format(download_link, local_file_path))
 
     def crawl_table(self):
         # A fn used to navigate to the folders and sub folders of the download page and download them
@@ -144,6 +149,7 @@ class Openwrt:
                                                             "(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(
                                                                 image_file + 1)).get_attribute("href")
                         self.down_ele_click(release_date, download_link, sha256sum)
+                        logger.debug("Downloading firmware from web page {}".format(driver.current_url))
             except NoSuchElementException:
                 self.crawl_table()
             driver.back()
