@@ -29,10 +29,12 @@ class WebCode(unittest.TestCase):
             dummy_openwrt_data = json_data['openwrt']
             if vendor_field('openwrt', 'user') is False:
                 logger.error('<module : openwrt > -> user not present')
+                raise Exception("< module :openwrt> user can't be found")
             else:
                 self.email = vendor_field('openwrt', 'user')
             if vendor_field('openwrt', 'password') is False:
                 logger.error('<module : openwrt > -> password not present')
+                raise Exception("< module :openwrt> password can't be found")
             else:
                 self.password = vendor_field('openwrt', 'password')
             if vendor_field('openwrt', 'url') is False:
@@ -72,7 +74,7 @@ class WebCode(unittest.TestCase):
         driver.maximize_window()
         self.assertEqual("[OpenWrt Wiki] Welcome to the OpenWrt Project", driver.title, msg="Homepage testcase passed")
 
-    def write_database(self, filename, release_date, download_link, local_file_location, sha256sum, file_size):
+    def write_database(self, filename, release_date, download_link, local_file_location, sha256sum):
         # The data extracted is writing into the database file
         dbdict_carrier = {}
         db_used = Database()
@@ -84,7 +86,7 @@ class WebCode(unittest.TestCase):
             elif key == "Releasedate":
                 dbdict_carrier[key] = release_date
             elif key == "Filesize":
-                dbdict_carrier[key] = file_size
+                dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))["File Size"]
             elif key == "Lasteditdate":
                 dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))["Last Edit Date"]
             elif key == "Fwdownlink":
@@ -97,18 +99,17 @@ class WebCode(unittest.TestCase):
                 dbdict_carrier[key] = "sha256sum = " + sha256sum
             else:
                 dbdict_carrier[key] = ''
-            db_used.insert_data(dbdict_carrier)
-            self.assertTrue(dbdict_carrier, msg="data inserted")
+        db_used.insert_data(dbdict_carrier)
+        self.assertTrue(dbdict_carrier, msg="data inserted")
 
-    def down_ele_click(self, release_date, download_link, sha256sum,file_size):
+    def down_ele_click(self, release_date, download_link, sha256sum):
         # A fn for duplication Check for not to download the files if files exist in local machine
         filename = download_link.split('/')[-1].replace(" ", "_")
         path_to_download = r"{}\{}\OpenWRT\{}".format(self.path, self.down_file_path, self.driver.find_element(By.XPATH,
                                                                                                                "(//h1/a)[last()]").get_attribute(
             "href")[30:].replace("/", "\\"))
-        local_file_path = os.path.join(path_to_download, filename)
+        local_file_path = os.path.join(path_to_download.replace('\\', '/'), filename)
         if not os.path.isfile(local_file_path):
-            print(f"The file is not found in local repository, now {filename} will be downloaded into local")
             if not os.path.exists(path_to_download):
                 os.makedirs(path_to_download)
             req = requests.get(download_link, stream=True)
@@ -119,7 +120,8 @@ class WebCode(unittest.TestCase):
                             file.write(chunk)
                             file.flush()
                             os.fsync(file.fileno())
-            self.write_database(filename, release_date, download_link, local_file_path, sha256sum, file_size)
+            logger.info("Downloading %s and saving as %s ", download_link, str(local_file_path))
+            self.write_database(filename, release_date, download_link, local_file_path, sha256sum)
         else:
             print(f"The file is found in local repository, now {filename} will not be downloaded into local")
         return local_file_path
@@ -136,20 +138,20 @@ class WebCode(unittest.TestCase):
                     image_files = driver.find_elements(By.XPATH,
                                                        "//th[text()='Image for your Device']/ancestor::tbody//td/a")
                     for image_file in range(len(image_files)):
-                        file_name = driver.find_element(By.XPATH,
-                                                        "(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(
-                                                            image_file + 1))
+                        file_name = driver.find_element(By.XPATH,"(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(image_file + 1))
                         sha256sum = driver.find_element(By.XPATH,
                                                         "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='sh'])[{}]".format(
                                                             image_file + 1)).text
-                        file_size = driver.find_element(By.XPATH,"(//th[text()='Image for your Device']/ancestor::tbody//td[@class='s'])[{}]".format(image_file + 1)).text
+                        # file_size = driver.find_element(By.XPATH,
+                        #                                 "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='s'])[{}]".format(
+                        #                                     image_file + 1)).text
                         release_date = driver.find_element(By.XPATH,
                                                            "(//th[text()='Image for your Device']/ancestor::tbody//td[@class='d'])[{}]".format(
                                                                image_file + 1)).text
                         download_link = driver.find_element(By.XPATH,
                                                             "(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(
                                                                 image_file + 1)).get_attribute("href")
-                        local_file_path = self.down_ele_click(release_date, download_link, sha256sum,file_size)
+                        local_file_path = self.down_ele_click(release_date, download_link, sha256sum)
                         self.assertTrue(local_file_path, msg="Location exists")
                         self.assertTrue(file_name, msg="download element found")
             except NoSuchElementException:
