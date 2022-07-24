@@ -200,9 +200,9 @@ class WebCode(unittest.TestCase):
                     else:
                         dbdict_carrier[key] = ''
 
-                    break
                 db_used.insert_data(dbdict_carrier)
                 self.assertTrue(dbdict_carrier, msg="data inserted")
+                break
             time.sleep(10)
             if driver.find_element(By.XPATH, "//*[text()='Next']").tag_name == "span":
                 break
