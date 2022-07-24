@@ -142,6 +142,7 @@ class WebCode(unittest.TestCase):
                     dbdict_carrier[key] = ''
             db_used.insert_data(dbdict_carrier)
             self.assertTrue(dbdict_carrier, msg="data inserted")
+            break
         driver.back()
 
     def test_gas(self):
@@ -198,8 +199,10 @@ class WebCode(unittest.TestCase):
                         dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                     else:
                         dbdict_carrier[key] = ''
+
                 db_used.insert_data(dbdict_carrier)
                 self.assertTrue(dbdict_carrier, msg="data inserted")
+                break
             time.sleep(10)
             if driver.find_element(By.XPATH, "//*[text()='Next']").tag_name == "span":
                 break

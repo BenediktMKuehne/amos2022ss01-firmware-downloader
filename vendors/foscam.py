@@ -136,6 +136,7 @@ class FoscamHomeSecurity:
                 if driver.find_element(By.XPATH, ".//table").is_displayed():
                     rows = driver.find_elements(By.XPATH, ".//tbody//tr")
                     web_file_name = driver.find_element(By.XPATH, ".//div[@class='download_list_icon']//span").text
+                    count = 0
                     for row in range(2, len(rows) + 1):
                         version = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[1]".format(row)).text
                         build_date = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[2]".format(row)).text
@@ -160,14 +161,19 @@ class FoscamHomeSecurity:
                         if not os.path.isfile(str(local_file_location.replace("\\", "/"))) and file_name is not None:
                             wget.download(down_link, str(local_file_location.replace("\\", "/")))
 
+                        logger.info('Foscam: Downloading Firmware %s, Version  %s', down_link, version)
                         logger.info("Downloading %s and saving as %s ", api_url,
                                     str(local_file_location.replace("\\", "/")))
                         while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
                                 file_name is not None:
                             time.sleep(5)
 
+                        count += 1
+                        logger.debug('digit: %s', count)
                         dbdict_carrier = {}
                         db_used = Database()
+                        logger.debug('<%s> <%s> <%s> <%s> <%s>', web_file_name, 'Foscam', web_file_name, version,
+                                     build_date)
                         for key in self.dbdict:
                             if key == "Manufacturer":
                                 dbdict_carrier[key] = "Foscam"

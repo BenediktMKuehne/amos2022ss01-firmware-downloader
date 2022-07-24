@@ -123,7 +123,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                 "img[contains(@src, '/Public/Home/images/faq/02.png')]".format(iter_num)).click()
             fw_coll_data.extend(list(set(self.firmware_collector())))
         print(len(fw_coll_data), fw_coll_data)
-        for href_url in fw_coll_data:
+        for href_url in fw_coll_data[0:1]:
             driver.get(href_url)
             print(href_url)
             try:
