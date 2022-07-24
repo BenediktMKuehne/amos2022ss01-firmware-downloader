@@ -27,10 +27,12 @@ class Openwrt:
             dummy_openwrt_data = json_data['openwrt']
             if vendor_field('openwrt', 'user') is False:
                 logger.error('<module : openwrt > -> user not present')
+                raise Exception("< module :openwrt> user can't be found")
             else:
                 self.email = vendor_field('openwrt', 'user')
             if vendor_field('openwrt', 'password') is False:
                 logger.error('<module : openwrt > -> password not present')
+                raise Exception("< module :openwrt> user can't be found")
             else:
                 self.password = vendor_field('openwrt', 'password')
             if vendor_field('openwrt', 'url') is False:
