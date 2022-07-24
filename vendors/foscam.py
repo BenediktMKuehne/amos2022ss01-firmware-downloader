@@ -160,7 +160,7 @@ class FoscamHomeSecurity:
                         if not os.path.isfile(str(local_file_location.replace("\\", "/"))) and file_name is not None:
                             wget.download(down_link, str(local_file_location.replace("\\", "/")))
 
-                        logger.info(f"Downloading %s and saving as %s ", api_url,
+                        logger.info("Downloading %s and saving as %s ", api_url,
                                     str(local_file_location.replace("\\", "/")))
                         while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
                                 file_name is not None:
