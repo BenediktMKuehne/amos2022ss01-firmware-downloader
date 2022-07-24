@@ -182,6 +182,7 @@ class Honeywell:
                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                 else:
                     dbdict_carrier[key] = ''
+
             db_used.insert_data(dbdict_carrier)
         driver.back()
 
@@ -217,6 +218,7 @@ class Honeywell:
         temp_cookies = []
         for item in in_brow_cookies:
             temp_cookies.append(''.join([f"{key}={item[key]}" for key in item]))
+
         in_brow_cookies = '; '.join(temp_cookies)
         print(in_brow_cookies)
         return in_brow_cookies
@@ -247,11 +249,13 @@ class Honeywell:
                 response = requests.get(crow_down_link)
                 with open(str(local_file_location.replace("\\", "/")), 'wb') as zip_file:
                     zip_file.write(response.content)
+
             print(cfile_name, crow_down_link, crow_add_desc, sep='\n')
             self.wait_for_down(str(local_file_location.replace("\\", "/")))
             dbdict_carrier = {}
             db_used = Database()
             for key in self.dbdict:
+
                 if key == "Fwfilename":
                     dbdict_carrier[key] = r'{}'.format(cfile_name)
                 elif key == "Manufacturer":
@@ -272,6 +276,7 @@ class Honeywell:
                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                 else:
                     dbdict_carrier[key] = ''
+
             db_used.insert_data(dbdict_carrier)
 
     def productivity(self):
@@ -499,6 +504,7 @@ class Honeywell:
                 dbdict_carrier = {}
                 db_used = Database()
                 for key in self.dbdict:
+
                     if key == "Fwfilename":
                         dbdict_carrier[key] = r'{}'.format(web_file_name)
                     elif key == "Manufacturer":
@@ -521,6 +527,7 @@ class Honeywell:
                         dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                     else:
                         dbdict_carrier[key] = ''
+
                 db_used.insert_data(dbdict_carrier)
             time.sleep(10)
             if driver.find_element(By.XPATH, "//*[text()='Next']").tag_name == "span":
