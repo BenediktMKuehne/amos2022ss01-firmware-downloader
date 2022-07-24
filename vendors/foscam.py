@@ -14,8 +14,10 @@ from selenium.webdriver.common.by import By
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import metadata_extractor
 from utils.modules_check import vendor_field
 from utils.Logs import get_logger
+
 logger = get_logger("vendors.foscam")
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 
@@ -64,6 +66,8 @@ class FoscamHomeSecurity:
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -139,6 +143,7 @@ class FoscamHomeSecurity:
                         build_date = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[2]".format(row)).text
                         size = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[3]".format(row)).text
                         release_notes = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[4]".format(row)).text
+                        release_notes = release_notes.replace("'", '')
                         attention = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[5]".format(row)).text
                         down_link = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[6]//a".format(row)) \
                             .get_attribute('href')
@@ -149,8 +154,20 @@ class FoscamHomeSecurity:
                         brow_cookies = self.clean_cookies(driver.get_cookies())
                         file_name = self.url_call_file_name(api_url, brow_cookies)
                         local_file_location = fr"{self.path}\{self.down_file_path}\Foscam\{str(f'{file_name}')}"
-                        if not os.path.isfile(local_file_location.replace("\\", "/")) and file_name is not None:
-                            wget.download(down_link, local_file_location)
+                        check_path = r"{}\{}\Foscam".format(self.path, self.down_file_path).replace('\\', '/')
+                        if not os.path.exists(check_path):
+                            print(os.path.isfile(check_path))
+                            os.mkdir(check_path)
+
+                        if not os.path.isfile(str(local_file_location.replace("\\", "/"))) and file_name is not None:
+                            wget.download(down_link, str(local_file_location.replace("\\", "/")))
+
+                        logger.info("Downloading %s and saving as %s ", api_url,
+                                    str(local_file_location.replace("\\", "/")))
+                        while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
+                                file_name is not None:
+                            time.sleep(5)
+
                         dbdict_carrier = {}
                         db_used = Database()
                         for key in self.dbdict:
@@ -164,8 +181,22 @@ class FoscamHomeSecurity:
                                 dbdict_carrier[key] = version
                             elif key == "Releasedate":
                                 dbdict_carrier[key] = build_date
+                            elif key == "Filesize":
+                                if local_file_location.split("\\")[-1] is not None and file_name is not None:
+                                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/"))
+                                                                             )["File Size"]
+                                else:
+                                    dbdict_carrier[key] = ''
+
+                            elif key == "Lasteditdate":
+                                if local_file_location.split("\\")[-1] is not None and file_name is not None:
+                                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/"))
+                                                                             )["Last Edit Date"]
+                                else:
+                                    dbdict_carrier[key] = ''
+
                             elif key == "Fwadddata":
-                                dbdict_carrier[key] = add_desc
+                                dbdict_carrier[key] = r'{}'.format(str(add_desc))
                             elif key == "Fwdownlink":
                                 dbdict_carrier[key] = down_link
                             elif key == "Fwfilelinktolocal":
@@ -175,21 +206,24 @@ class FoscamHomeSecurity:
                                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                                 else:
                                     dbdict_carrier[key] = ''
+
                             else:
                                 dbdict_carrier[key] = ''
+
                         db_used.insert_data(dbdict_carrier)
             except NoSuchElementException:
-                dbdict_carrier = {}
-                db_used = Database()
-                for key in self.dbdict:
-                    if key == "Manufacturer":
-                        dbdict_carrier[key] = "Foscam"
-                    elif key == "Fwadddata":
-                        dbdict_carrier[key] = fr"The Webpage doesn't contain any Firmware downloads,\
-                        So this page is skipped, The Firmware crawled page is: {href_url}"
-                    else:
-                        dbdict_carrier[key] = ''
-                db_used.insert_data(dbdict_carrier)
+                logger.error('The firmware is not available for: %s', href_url)
+                # dbdict_carrier = {}
+                # db_used = Database()
+                # for key in self.dbdict:
+                #     if key == "Manufacturer":
+                #         dbdict_carrier[key] = "Foscam"
+                #     elif key == "Fwadddata":
+                #         dbdict_carrier[key] = fr"The Webpage does not contain any Firmware downloads,\
+                #         So this page is skipped, The Firmware crawled page is: {href_url}"
+                #     else:
+                #         dbdict_carrier[key] = ''
+                # db_used.insert_data(dbdict_carrier)
 
     def close_browser(self):
         # At the end of the program, the function will close the Chrome browser
@@ -201,6 +235,10 @@ class FoscamHomeSecurity:
 if __name__ == '__main__':
     ChromiumDownloader().executor()
     fos = FoscamHomeSecurity()
-    fos.homepage()
-    fos.firmware_downloader()
-    fos.close_browser()
+    try:
+        fos.homepage()
+        fos.firmware_downloader()
+    except NoSuchElementException as error:
+        print(error)
+    finally:
+        fos.close_browser()

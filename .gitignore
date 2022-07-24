@@ -49,6 +49,8 @@ bin/
 # ignore download folders
 **/Downloads/
 **/Test_Downloads/
+**/database_txt_file/
 
-# ignore temp files
+# ignore temp files and .txt files
 **/*.tmp
+**/*.txt

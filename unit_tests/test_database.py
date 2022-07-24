@@ -13,13 +13,15 @@ class DatabaseUnitTest(unittest.TestCase):
         cursor = conn.cursor()
         # Create a function for selenium output in dict format and return the dict
         firmware_data = {
-            'Fwfileid': 'c1',
+            'Fwfileid': '',
             'Fwfilename': 'Siemens ABC firmware',
             'Manufacturer': 'Siemens',
             'Modelname': 'SZ-100',
             'Version': '1.2.3',
             'Type': 'Router',
             'Releasedate': '2022-05-31',
+            'Lasteditdate': '',
+            'Filesize': '',
             'Checksum': 'None',
             'Embatested': 'Yes',
             'Embalinktoreport': 'None',

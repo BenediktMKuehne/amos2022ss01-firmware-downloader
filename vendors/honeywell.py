@@ -15,9 +15,11 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import NoSuchElementException
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
+from utils.metadata_extractor import metadata_extractor
 from utils.modules_check import vendor_field
 from utils.Logs import get_logger
 logger = get_logger("vendors.honeywell")
@@ -79,6 +81,8 @@ class Honeywell:
             'Version': '',
             'Type': '',
             'Releasedate': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Checksum': '',
             'Embatested': '',
             'Embalinktoreport': '',
@@ -92,6 +96,7 @@ class Honeywell:
         }
 
     def homepage(self):
+        logger.info('Navigation of Honeywell Home Page: %s', self.url)
         # The homepage is used to navigate to the main page of downloads
         driver = self.driver
         driver.get(self.url)
@@ -99,10 +104,14 @@ class Honeywell:
         driver.maximize_window()
 
     @staticmethod
+    def wait_for_down(in_local_file_location):
+        while not os.path.isfile(in_local_file_location):
+            time.sleep(5)
+
+    @staticmethod
     def down_ele_click(loc_loc,  element):
         # A fn for duplication Check for not to download the files if files exist in local machine
         if not os.path.isfile(loc_loc.replace("\\", "/")):
-            time.sleep(10)
             element.click()
 
     @staticmethod
@@ -120,6 +129,7 @@ class Honeywell:
 
     def advanced_sensing_tech(self):
         # 1. the function responsible to drive Advanced Sensing Technologies
+        logger.info('Starting the Honeywell 1st Module')
         driver = self.driver
         click_here_options = driver.find_element(By.XPATH, "(//a[contains(text(),'CLICK HERE')])[1]")
         click_here_options.click()
@@ -145,7 +155,9 @@ class Honeywell:
             actions.move_to_element(download_element).perform()
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, file_name)
             # Duplication Check for not to download the files if files exist in local machine
-            self.down_ele_click(local_file_location, download_element)
+            self.down_ele_click(str(local_file_location.replace("\\", "/")), download_element)
+            logger.info("Downloading %s and saving as %s ", download_link, str(local_file_location.replace("\\", "/")))
+            self.wait_for_down(str(local_file_location.replace("\\", "/")))
             dbdict_carrier = {}
             db_used = Database()
             for key in self.dbdict:
@@ -159,6 +171,11 @@ class Honeywell:
                     dbdict_carrier[key] = r'{}'.format(web_file_name)
                 elif key == "Releasedate":
                     dbdict_carrier[key] = last_updated
+                elif key == "Filesize":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))["File Size"]
+                elif key == "Lasteditdate":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                        "Last Edit Date"]
                 elif key == "Fwdownlink":
                     dbdict_carrier[key] = download_link
                 elif key == "Fwfilelinktolocal":
@@ -167,6 +184,7 @@ class Honeywell:
                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                 else:
                     dbdict_carrier[key] = ''
+
             db_used.insert_data(dbdict_carrier)
         driver.back()
 
@@ -202,6 +220,7 @@ class Honeywell:
         temp_cookies = []
         for item in in_brow_cookies:
             temp_cookies.append(''.join([f"{key}={item[key]}" for key in item]))
+
         in_brow_cookies = '; '.join(temp_cookies)
         print(in_brow_cookies)
         return in_brow_cookies
@@ -213,8 +232,8 @@ class Honeywell:
         print([ele.text for ele in crows])
         for crow in crows:
             crow_add_desc = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[1]".format(crows.index(crow)+1)).text
-            cfile_name = driver.find_element(By.XPATH, ".//tbody//tr[{}]//strong[@class='title']".format(crows.index(crow)+1))\
-                .text
+            cfile_name = driver.find_element(By.XPATH, ".//tbody//tr[{}]//strong[@class='title']".format(crows.index(
+                crow)+1)).text
             crow_add_desc = crow_add_desc.replace(cfile_name, '')
             data_soft_id = driver.find_element(
                 By.XPATH, f".//tbody//tr[{crows.index(crow)}+1]"
@@ -226,18 +245,29 @@ class Honeywell:
             brow_cookies = self.clean_cookies(driver.get_cookies())
             crow_down_link = self.url_call(en_data_soft_id_url, brow_cookies)
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, cfile_name)
-            if not os.path.isfile(local_file_location.replace("\\", "/")):
+            logger.info("Downloading %s and saving as %s ", crow_down_link, str(local_file_location.replace("\\",
+                                                                                                             "/")))
+            if not os.path.isfile(str(local_file_location.replace("\\", "/"))):
                 response = requests.get(crow_down_link)
-                with open(local_file_location, 'wb') as zip_file:
+                with open(str(local_file_location.replace("\\", "/")), 'wb') as zip_file:
                     zip_file.write(response.content)
+
             print(cfile_name, crow_down_link, crow_add_desc, sep='\n')
+            self.wait_for_down(str(local_file_location.replace("\\", "/")))
             dbdict_carrier = {}
             db_used = Database()
             for key in self.dbdict:
+
                 if key == "Fwfilename":
                     dbdict_carrier[key] = r'{}'.format(cfile_name)
                 elif key == "Manufacturer":
                     dbdict_carrier[key] = "Honeywell"
+                elif key == "Filesize":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                            "File Size"]
+                elif key == "Lasteditdate":
+                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                        "Last Edit Date"]
                 elif key == "Fwdownlink":
                     dbdict_carrier[key] = r'{}'.format(crow_down_link)
                 elif key == "Fwfilelinktolocal":
@@ -248,10 +278,12 @@ class Honeywell:
                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                 else:
                     dbdict_carrier[key] = ''
+
             db_used.insert_data(dbdict_carrier)
 
     def productivity(self):
         # 2. the function responsible to run the productivity and is only responsible for login & tree expansion
+        logger.info('Starting the Honeywell 2nd Module')
         driver = self.driver
         driver.refresh()
         time.sleep(10)
@@ -268,7 +300,7 @@ class Honeywell:
         time.sleep(10)
         hny_down_tool = driver.find_element(By.XPATH, ".//a[contains(text(),'here')]").get_attribute('href')
         print(hny_down_tool)
-        honeywell_zip = wget.download(hny_down_tool, 'honeywell_downloader.zip')
+        honeywell_zip = wget.download(hny_down_tool, fr'{parent_dir}/vendors/honeywell_downloader.zip')
         with zipfile.ZipFile(honeywell_zip, 'r') as zip_ref:
             zip_ref.extractall()
         os.remove(honeywell_zip)
@@ -437,6 +469,7 @@ class Honeywell:
 
     def gas(self):
         # 3. The function responsible to run the Safety
+        logger.info('Starting the Honeywell 3rd Module')
         driver = self.driver
         driver.refresh()
         time.sleep(10)
@@ -467,9 +500,13 @@ class Honeywell:
                 local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path,
                                                                    download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element)
+                logger.info("Downloading %s and saving as %s ", download_link,
+                            str(local_file_location.replace("\\", "/")))
+                self.wait_for_down(local_file_location)
                 dbdict_carrier = {}
                 db_used = Database()
                 for key in self.dbdict:
+
                     if key == "Fwfilename":
                         dbdict_carrier[key] = r'{}'.format(web_file_name)
                     elif key == "Manufacturer":
@@ -478,6 +515,12 @@ class Honeywell:
                         dbdict_carrier[key] = r'{}'.format(model_name)
                     elif key == "Version":
                         dbdict_carrier[key] = r'{}'.format(version)
+                    elif key == "Filesize":
+                        dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                            "File Size"]
+                    elif key == "Lasteditdate":
+                        dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/")))[
+                            "Last Edit Date"]
                     elif key == "Fwdownlink":
                         dbdict_carrier[key] = download_link
                     elif key == "Fwfilelinktolocal":
@@ -486,6 +529,7 @@ class Honeywell:
                         dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                     else:
                         dbdict_carrier[key] = ''
+
                 db_used.insert_data(dbdict_carrier)
             time.sleep(10)
             if driver.find_element(By.XPATH, "//*[text()='Next']").tag_name == "span":
@@ -495,6 +539,7 @@ class Honeywell:
 
     def close_browser(self):
         # At the end of the program, the function will close the Chrome browser
+        logger.info('The Browser Close operation will be performed')
         driver = self.driver
         time.sleep(10)
         driver.quit()
@@ -503,8 +548,12 @@ class Honeywell:
 if __name__ == '__main__':
     ChromiumDownloader().executor()
     hw = Honeywell()
-    hw.homepage()
-    hw.advanced_sensing_tech()
-    hw.gas()
-    hw.productivity()
-    hw.close_browser()
+    try:
+        hw.homepage()
+        hw.advanced_sensing_tech()
+        hw.gas()
+        hw.productivity()
+    except NoSuchElementException as error:
+        print(error)
+    finally:
+        hw.close_browser()
