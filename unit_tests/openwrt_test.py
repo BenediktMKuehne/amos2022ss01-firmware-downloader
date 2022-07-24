@@ -105,7 +105,7 @@ class WebCode(unittest.TestCase):
                 dbdict_carrier[key] = ''
         db_used.insert_data(dbdict_carrier)
         logger.info('<Metadata added to database>')
-        logger.debug('{}: Openwrt: {}'.format(dbdict_carrier['Fwfilename'], dbdict_carrier['Releasedate']))
+        logger.debug('%s: Openwrt: %s', dbdict_carrier['Fwfilename'], dbdict_carrier['Releasedate'])
         self.assertTrue(dbdict_carrier, msg="data inserted")
 
     def down_ele_click(self, release_date, download_link, sha256sum):
@@ -127,8 +127,8 @@ class WebCode(unittest.TestCase):
                             file.flush()
                             os.fsync(file.fileno())
             self.write_database(filename, release_date, download_link, local_file_path, sha256sum)
-            logger.debug("Openwrt: Downloading firmware {}".format(filename))
-            logger.debug("{}: Downloading firmware {}".format(download_link, local_file_path))
+            logger.debug("Openwrt: Downloading firmware %s", filename)
+            logger.debug("%s: Downloading firmware %s", download_link, local_file_path)
         else:
             print(f"The file is found in local repository, now {filename} will not be downloaded into local")
         return local_file_path
@@ -161,7 +161,7 @@ class WebCode(unittest.TestCase):
                         local_file_path = self.down_ele_click(release_date, download_link, sha256sum)
                         self.assertTrue(local_file_path, msg="Location exists")
                         self.assertTrue(file_name, msg="download element found")
-                        logger.debug("Downloading firmware from web page {}".format(driver.current_url))
+                        logger.debug("Downloading firmware from web page %s", driver.current_url)
             except NoSuchElementException:
                 self.crawl_table()
             driver.back()

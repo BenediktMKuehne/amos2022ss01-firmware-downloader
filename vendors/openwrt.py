@@ -101,7 +101,7 @@ class Openwrt:
                 dbdict_carrier[key] = ''
         db_used.insert_data(dbdict_carrier)
         logger.info('<Metadata added to database>')
-        logger.debug('{}: Openwrt: {}'.format(dbdict_carrier['Fwfilename'], dbdict_carrier['Releasedate']))
+        logger.debug('%s: Openwrt: %s', dbdict_carrier['Fwfilename'], dbdict_carrier['Releasedate'])
 
     def down_ele_click(self, release_date, download_link, sha256sum):
         # A fn for duplication Check for not to download the files if files exist in local machine
@@ -120,8 +120,8 @@ class Openwrt:
                             file.flush()
                             os.fsync(file.fileno())
             self.write_database(filename, release_date, download_link, local_file_path, sha256sum)
-            logger.debug("Openwrt: Downloading firmware {}".format(filename))
-            logger.debug("{}: Downloading firmware {}".format(download_link, local_file_path))
+            logger.debug("Openwrt: Downloading firmware %s", filename)
+            logger.debug("%s: Downloading firmware %s", download_link, local_file_path)
 
     def crawl_table(self):
         # A fn used to navigate to the folders and sub folders of the download page and download them
@@ -149,7 +149,7 @@ class Openwrt:
                                                             "(//th[text()='Image for your Device']/ancestor::tbody//td/a)[{}]".format(
                                                                 image_file + 1)).get_attribute("href")
                         self.down_ele_click(release_date, download_link, sha256sum)
-                        logger.debug("Downloading firmware from web page {}".format(driver.current_url))
+                        logger.debug("Downloading firmware from web page %s", driver.current_url)
             except NoSuchElementException:
                 self.crawl_table()
             driver.back()
