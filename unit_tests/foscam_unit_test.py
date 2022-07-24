@@ -144,7 +144,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                         api_url = f'https://www.foscam.com/downloads/file.html?cate=firmware&id={down_id}'
                         brow_cookies = self.clean_cookies(driver.get_cookies())
                         file_name = self.url_call_file_name(api_url, brow_cookies)
-                        local_file_location = fr"{self.path}\{self.down_file_path}\Foscam\{str(f'{file_name}')}"
+                        local_file_location = fr"{parent_dir}\unit_tests\{self.down_file_path}\Foscam\{str(f'{file_name}')}"
                         check_path = r"{}\{}\Foscam".format(self.path, self.down_file_path).replace('\\', '/')
                         if not os.path.exists(check_path):
                             print(os.path.isfile(check_path))
