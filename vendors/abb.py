@@ -125,7 +125,7 @@ def transform_metadata_format_ours(raw_data, local_storage_dir="."):
     fw_mod_list = []
     for fw_ in raw_data:
         # Check if firmware is in SKIP_FILES and skip it
-        if fw_["metadata"]["fileSuffix"] in SKIP_FILES:
+        if fw_["metadata"].get("fileSuffix", None) and  fw_["metadata"]["fileSuffix"] in SKIP_FILES:
             continue
         local_link = os.path.join(local_storage_dir, str(uuid.uuid4()) + "." + fw_["metadata"]["fileSuffix"])
 
