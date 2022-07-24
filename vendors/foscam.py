@@ -160,6 +160,8 @@ class FoscamHomeSecurity:
                         if not os.path.isfile(str(local_file_location.replace("\\", "/"))) and file_name is not None:
                             wget.download(down_link, str(local_file_location.replace("\\", "/")))
 
+                        logger.info(f"Downloading %s and saving as %s ", api_url,
+                                    str(local_file_location.replace("\\", "/")))
                         while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
                                 file_name is not None:
                             time.sleep(5)
@@ -208,7 +210,7 @@ class FoscamHomeSecurity:
 
                         db_used.insert_data(dbdict_carrier)
             except NoSuchElementException:
-                logger.error(f'The firmware is not available for: %s', href_url)
+                logger.error('The firmware is not available for: %s', href_url)
                 # dbdict_carrier = {}
                 # db_used = Database()
                 # for key in self.dbdict:

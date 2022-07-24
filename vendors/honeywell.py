@@ -154,6 +154,7 @@ class Honeywell:
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, file_name)
             # Duplication Check for not to download the files if files exist in local machine
             self.down_ele_click(str(local_file_location.replace("\\", "/")), download_element)
+            logger.info(f"Downloading %s and saving as %s ", download_link, str(local_file_location.replace("\\", "/")))
             self.wait_for_down(str(local_file_location.replace("\\", "/")))
             dbdict_carrier = {}
             db_used = Database()
@@ -240,6 +241,8 @@ class Honeywell:
             brow_cookies = self.clean_cookies(driver.get_cookies())
             crow_down_link = self.url_call(en_data_soft_id_url, brow_cookies)
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, cfile_name)
+            logger.info(f"Downloading %s and saving as %s ", crow_down_link, str(local_file_location.replace("\\",
+                                                                                                             "/")))
             if not os.path.isfile(str(local_file_location.replace("\\", "/"))):
                 response = requests.get(crow_down_link)
                 with open(str(local_file_location.replace("\\", "/")), 'wb') as zip_file:
@@ -490,6 +493,8 @@ class Honeywell:
                 local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path,
                                                                    download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element)
+                logger.info(f"Downloading %s and saving as %s ", download_link,
+                            str(local_file_location.replace("\\", "/")))
                 self.wait_for_down(local_file_location)
                 dbdict_carrier = {}
                 db_used = Database()
