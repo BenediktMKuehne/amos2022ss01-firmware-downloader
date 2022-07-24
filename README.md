@@ -31,8 +31,22 @@ The software will only be applied to websites that do not object to automated do
 **Program Running Steps**
 **Requirements:**
   Linux
+  Pycharm (Recommended)
   
-**Steps:**
-  Run following command in root folder
-    	` 1. sudo bash ./installer.sh`
-	` 2. python3 main.py --num-threads 4`
+# Foobar
+
+Foobar is a Python library for dealing with word pluralization.
+
+## Installation
+
+Use the installer.sh to install project.
+
+```bash
+sudo bash ./installer.sh
+```
+
+## Run
+
+```bash
+python main.py
+```
