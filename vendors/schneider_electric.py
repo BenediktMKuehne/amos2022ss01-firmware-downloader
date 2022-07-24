@@ -26,6 +26,8 @@ CONFIG_PATH = os.path.join(parent_dir, "config", "config.json")
 DATA={}
 URL = ''
 API_URL = ''
+SKIP_FILES = ["pdf", "txt"]
+
 with open(CONFIG_PATH, "rb") as fp:
     DATA = json.load(fp)
     if vendor_field('schneider_electric', 'url') is False:
@@ -118,6 +120,9 @@ def get_firmware_data_using_api(url, fw_count, fw_per_page):
 def transform_metadata_format_ours(raw_data, local_storage_dir="."):
     fw_mod_list = []
     for fw_ in raw_data:
+        # Check if file is in SKIP_FILES and skip
+        if fw_.get("fileExtension", None) and fw_["fileExtension"] in SKIP_FILES:
+            continue
         local_link = os.path.join(local_storage_dir, parse_qs(urlparse(fw_.get("downloadUrl")).query, keep_blank_values=True).get("p_File_Name", list(str(uuid.uuid4())))[0].replace(" ", "_").replace("'", ""))
         fw_mod = {
             'Fwfileid': '',
