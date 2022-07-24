@@ -15,6 +15,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import NoSuchElementException
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
@@ -93,6 +94,7 @@ class Honeywell:
         }
 
     def homepage(self):
+        logger.info('Navigation of Honeywell Home Page: %s', self.url)
         # The homepage is used to navigate to the main page of downloads
         driver = self.driver
         driver.get(self.url)
@@ -125,6 +127,7 @@ class Honeywell:
 
     def advanced_sensing_tech(self):
         # 1. the function responsible to drive Advanced Sensing Technologies
+        logger.info('Starting the Honeywell 1st Module')
         driver = self.driver
         click_here_options = driver.find_element(By.XPATH, "(//a[contains(text(),'CLICK HERE')])[1]")
         click_here_options.click()
@@ -270,6 +273,7 @@ class Honeywell:
 
     def productivity(self):
         # 2. the function responsible to run the productivity and is only responsible for login & tree expansion
+        logger.info('Starting the Honeywell 2nd Module')
         driver = self.driver
         driver.refresh()
         time.sleep(10)
@@ -455,6 +459,7 @@ class Honeywell:
 
     def gas(self):
         # 3. The function responsible to run the Safety
+        logger.info('Starting the Honeywell 3rd Module')
         driver = self.driver
         driver.refresh()
         time.sleep(10)
@@ -520,6 +525,7 @@ class Honeywell:
 
     def close_browser(self):
         # At the end of the program, the function will close the Chrome browser
+        logger.info('The Browser Close operation will be performed')
         driver = self.driver
         time.sleep(10)
         driver.quit()
@@ -528,8 +534,12 @@ class Honeywell:
 if __name__ == '__main__':
     ChromiumDownloader().executor()
     hw = Honeywell()
-    hw.homepage()
-    hw.advanced_sensing_tech()
-    hw.gas()
-    hw.productivity()
-    hw.close_browser()
+    try:
+        hw.homepage()
+        hw.advanced_sensing_tech()
+        hw.gas()
+        hw.productivity()
+    except NoSuchElementException as error:
+        print(error)
+    finally:
+        hw.close_browser()

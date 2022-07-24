@@ -208,17 +208,18 @@ class FoscamHomeSecurity:
 
                         db_used.insert_data(dbdict_carrier)
             except NoSuchElementException:
-                dbdict_carrier = {}
-                db_used = Database()
-                for key in self.dbdict:
-                    if key == "Manufacturer":
-                        dbdict_carrier[key] = "Foscam"
-                    elif key == "Fwadddata":
-                        dbdict_carrier[key] = fr"The Webpage does not contain any Firmware downloads,\
-                        So this page is skipped, The Firmware crawled page is: {href_url}"
-                    else:
-                        dbdict_carrier[key] = ''
-                db_used.insert_data(dbdict_carrier)
+                logger.error(f'The firmware is not available for: %s', href_url)
+                # dbdict_carrier = {}
+                # db_used = Database()
+                # for key in self.dbdict:
+                #     if key == "Manufacturer":
+                #         dbdict_carrier[key] = "Foscam"
+                #     elif key == "Fwadddata":
+                #         dbdict_carrier[key] = fr"The Webpage does not contain any Firmware downloads,\
+                #         So this page is skipped, The Firmware crawled page is: {href_url}"
+                #     else:
+                #         dbdict_carrier[key] = ''
+                # db_used.insert_data(dbdict_carrier)
 
     def close_browser(self):
         # At the end of the program, the function will close the Chrome browser
@@ -230,6 +231,10 @@ class FoscamHomeSecurity:
 if __name__ == '__main__':
     ChromiumDownloader().executor()
     fos = FoscamHomeSecurity()
-    fos.homepage()
-    fos.firmware_downloader()
-    fos.close_browser()
+    try:
+        fos.homepage()
+        fos.firmware_downloader()
+    except NoSuchElementException as error:
+        print(error)
+    finally:
+        fos.close_browser()
