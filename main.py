@@ -1,17 +1,11 @@
 import argparse
 import json
 import os
-import sys
 import time
-import inspect
 from concurrent.futures import ThreadPoolExecutor
 import schedule
 from utils.Logs import get_logger
 from uploader.upload import FirmwareUploader
-current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parent_dir = os.path.dirname(current_dir)
-sys.path.insert(0, parent_dir)
-sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 config_path = os.path.join("config", "config.json")
 with open(config_path, "rb") as fp:
@@ -27,7 +21,7 @@ MODULES_STATUS = {}
 def runner(mod):
     MODULES_STATUS[mod] = 'running'
     print(MODULES_STATUS)
-    os.system("python vendors/" + mod + ".py")
+    # os.system("python vendors/" + mod + ".py")
     MODULES_STATUS[mod] = 'finished'
     print(MODULES_STATUS)
     if len(list(set(list(MODULES_STATUS.values())))) == 1:

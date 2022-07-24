@@ -1,12 +1,5 @@
-import os
-import sys
 import sqlite3
-import inspect
 from utils.database import Database
-current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parent_dir = os.path.dirname(current_dir)
-sys.path.insert(0, parent_dir)
-sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 #check duplicate data for firmware web scrapping
 def check_duplicates(firmware_data, db_name):

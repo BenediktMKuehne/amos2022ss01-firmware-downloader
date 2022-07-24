@@ -8,7 +8,6 @@ from utils.Logs import get_logger
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
-print(parent_dir)
 logger = get_logger("utils.database")
 
 
@@ -17,7 +16,8 @@ class Database:
 
     def __init__(self, db_path="firmwaredatabase.db"):
         # The initialization function is available for all the methods with the db class
-        self.dbname = fr"{parent_dir}/utils/{db_path}"
+        self.dbname = db_path
+        # self.dbname = fr"{parent_dir}\utils\{db_path}"
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',
