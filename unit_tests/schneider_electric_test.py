@@ -29,7 +29,8 @@ class SchneiderUnitTest(unittest.TestCase):
         if not os.path.isdir(dest):
             os.mkdir(dest)
         gt_file = "PM5560_PM5563_V2.7.4_Release.zip"  #Firmware_1.10.0_5500AC2.zip
-        self.gt_file_path = os.path.join(dest, gt_file)
+        path = os.path.join(os.getcwd(), dest)
+        self.gt_file_path = os.path.join(path, gt_file)
         self.gt_url = "https://download.schneider-electric.com/files?p_enDocType=Firmware&p_File_Name=PM5560_PM5563_V2.7.4_Release.zip&p_Doc_Ref=PM5560_PM5563_V2.7.4_Release"
         # remove all schneider electric data in test database
         delete_command = "DELETE FROM FWDB where Manufacturer='schneider_electric'"
@@ -38,21 +39,45 @@ class SchneiderUnitTest(unittest.TestCase):
         curs.execute(delete_command)
 
     def test_download(self):
-        if os.path.exists(self.gt_file_path):
-            os.remove(self.gt_file_path)
-        download_single_file(self.gt_url, self.gt_file_path, {})
-        self.assertTrue(os.path.exists(self.gt_file_path), msg="Path not exists")
-
-    def test_if_data_entered_in_db(self):
         dummy_data = {
-            'Fwfileid': 'FILE',
-            'Fwfilename': "testfile",
+            'Fwfileid': '',
+            'Fwfilename': "",
             'Manufacturer': 'schneider_electric',
             'Modelname': "1.0.0",
             'Version': "1.0.0",
             'Type': "firmware",
             'Releasedate': "",
             'Checksum': '',
+            'Filesize': '',
+            'Lasteditdate': '',
+            'Embatested': '',
+            'Embalinktoreport': '',
+            'Embarklinktoreport': '',
+            'Fwdownlink': "https://test.com/firmware.zip",
+            'Fwfilelinktolocal': self.gt_file_path,
+            'Fwadddata': '',
+            'Uploadedonembark': False,
+            'Embarkfileid': '',
+            'Startedanalysisonembark': False
+        }
+        print(self.gt_file_path)
+        if os.path.exists(self.gt_file_path):
+            os.remove(self.gt_file_path)
+        download_single_file(self.gt_url, self.gt_file_path, dummy_data)
+        self.assertTrue(os.path.exists(self.gt_file_path), msg="Path not exists")
+
+    def test_if_data_entered_in_db(self):
+        dummy_data = {
+            'Fwfileid': '',
+            'Fwfilename': "",
+            'Manufacturer': 'schneider_electric',
+            'Modelname': "1.0.0",
+            'Version': "1.0.0",
+            'Type': "firmware",
+            'Releasedate': "",
+            'Checksum': '',
+            'Filesize': '',
+            'Lasteditdate': '',
             'Embatested': '',
             'Embalinktoreport': '',
             'Embarklinktoreport': '',
@@ -69,13 +94,13 @@ class SchneiderUnitTest(unittest.TestCase):
         curs.execute(select_command)
         records = len(curs.fetchall())
         #Make sure no record exist for schneider_electric
-        self.assertEqual(records, 0,msg="There should be no record in db")
+        self.assertEqual(records, 0, msg="There should be no record in db")
         # Add data for schneider electric
         write_metadata_to_db([dummy_data], db_path=DB_NAME)
         # Now test if one record exist for schneider_electric
         curs.execute(select_command)
         records = len(curs.fetchall())
-        self.assertEqual(records, 1 , msg="There should be only one record in db")
+        self.assertEqual(records, 1, msg="There should be only one record in db")
         print(f"Database contains {records} firmwares for schneider_electric")
 
     def tearDown(self):
