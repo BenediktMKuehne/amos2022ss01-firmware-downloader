@@ -181,7 +181,7 @@ def main():
         api_url = API_URL
         raw_fw_list = get_firmware_data_using_api(api_url, total_fw, 50) #50 is max fw_per_page
         metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
-        download_list_files(metadata, 2) # download max 10 files
+        download_list_files(metadata, max_files=-1) # download max n files
     except Exception as general_exception:
         logger.error("%s", general_exception)
         traceback.print_exc(file=sys.stdout)

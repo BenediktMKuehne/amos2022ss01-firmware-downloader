@@ -42,6 +42,7 @@ def download_single_file(file_metadata):
     resp = requests.get(url, allow_redirects=True)
     if resp.status_code != 200:
         logger.error('<%s> is invalid', url)
+        raise ValueError('<%s> is invalid' % url)
     final_obj_url = resp.request.url
     file_name = urlparse(final_obj_url).path.split("/")[-1].replace("%20", " ")
     old_file_name_list = file_metadata["Fwfilelinktolocal"].split("/")
@@ -159,7 +160,7 @@ def main():
     metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
     logger.info("Printing first transformed document metadata")
     logger.info(json.dumps(metadata[0], indent=4))
-    download_list_files(metadata, max_files=5)
+    download_list_files(metadata, max_files=-1)
 
 
 if __name__ == "__main__":
