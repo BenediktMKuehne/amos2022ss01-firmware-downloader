@@ -1,6 +1,7 @@
 import inspect
 import json
 import os
+import platform
 import sys
 import time
 import unittest
@@ -32,7 +33,9 @@ class WebCode(unittest.TestCase):
             self.url = honeywell_data['url']
             self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe"
+        self.system = platform.system().lower()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe" if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver"
         self.db_name = 'test_firmwaredatabase.db'
         opt = Options()
         opt.headless = True
@@ -182,7 +185,7 @@ class WebCode(unittest.TestCase):
                 actions = ActionChains(driver)
                 actions.move_to_element(download_element).perform()
                 local_file_location = r"{}\unit_tests\{}\Honeywell\{}".format(parent_dir, self.down_file_path,
-                                                                   download_link.split('/')[-1])
+                                                                              download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element, web_file_name)
                 self.wait_for_down(str(local_file_location.replace("\\", "/")))
                 self.assertTrue(str(local_file_location.replace("\\", "/")), msg="Location exists")
