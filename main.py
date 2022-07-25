@@ -38,6 +38,7 @@ def thread_pool(num_threads_, whitelisted_modules_):
         for module in whitelisted_modules_:
             if module in config and "interval" in config[module]:
                 logger.info("Starting %s downloader ...", module)
+                # executor_job(module, executor) # for testing
                 schedule.every(config[module]['interval']).minutes.do(executor_job, module, executor)
             elif "interval" in config["default"]:
                 schedule.every(config['default']['interval']).minutes.do(executor_job, module, executor)
@@ -57,7 +58,6 @@ def get_modules(skip):
                     MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
                 elif config[mod.split('.')[0]]["ignore"] is True and skip is True:
-                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
                 elif config[mod.split('.')[0]]["ignore"] is False and skip is False:
                     MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
@@ -67,7 +67,6 @@ def get_modules(skip):
                     MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
                 elif config['default']['ignore'] is True and skip is True:
-                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
                 elif config['default']['ignore'] is False and skip is False:
                     MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
