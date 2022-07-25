@@ -23,6 +23,9 @@ logger = get_logger("vendors.abb")
 CONFIG_PATH = os.path.join(parent_dir, "config", "config.json")
 DATA={}
 URL = ''
+
+SKIP_FILES = ["pdf", "txt"]
+
 with open(CONFIG_PATH, "rb") as fp:
     DATA = json.load(fp)
 
@@ -121,6 +124,9 @@ def get_firmware_data_using_api(url, fw_count, fw_per_page):
 def transform_metadata_format_ours(raw_data, local_storage_dir="."):
     fw_mod_list = []
     for fw_ in raw_data:
+        # Check if firmware is in SKIP_FILES and skip it
+        if fw_["metadata"].get("fileSuffix", None) and  fw_["metadata"]["fileSuffix"] in SKIP_FILES:
+            continue
         local_link = os.path.join(local_storage_dir, str(uuid.uuid4()) + "." + fw_["metadata"]["fileSuffix"])
 
         fw_mod = {
@@ -160,7 +166,7 @@ def main():
     metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
     logger.info("Printing first transformed document metadata")
     logger.info(json.dumps(metadata[0], indent=4))
-    download_list_files(metadata, max_files=-1)
+    download_list_files(metadata, max_files=5)
 
 
 if __name__ == "__main__":

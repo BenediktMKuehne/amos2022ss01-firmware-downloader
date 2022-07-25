@@ -114,7 +114,7 @@ class WebCode(unittest.TestCase):
             print(data, download_link, file_name)
             actions = ActionChains(driver)
             actions.move_to_element(download_element).perform()
-            local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, file_name)
+            local_file_location = r"{}\unit_tests\{}\Honeywell\{}".format(parent_dir, self.down_file_path, file_name)
             # Duplication Check for not to download the files if files exist in local machine
             self.down_ele_click(local_file_location, download_element, file_name)
             self.wait_for_down(str(local_file_location.replace('\\', '/')))
@@ -142,6 +142,7 @@ class WebCode(unittest.TestCase):
                     dbdict_carrier[key] = ''
             db_used.insert_data(dbdict_carrier)
             self.assertTrue(dbdict_carrier, msg="data inserted")
+            break
         driver.back()
 
     def test_gas(self):
@@ -177,7 +178,7 @@ class WebCode(unittest.TestCase):
                     .format(rows.index(row) + 1))
                 actions = ActionChains(driver)
                 actions.move_to_element(download_element).perform()
-                local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path,
+                local_file_location = r"{}\unit_tests\{}\Honeywell\{}".format(parent_dir, self.down_file_path,
                                                                    download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element, web_file_name)
                 self.wait_for_down(str(local_file_location.replace("\\", "/")))
@@ -198,8 +199,10 @@ class WebCode(unittest.TestCase):
                         dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                     else:
                         dbdict_carrier[key] = ''
+
                 db_used.insert_data(dbdict_carrier)
                 self.assertTrue(dbdict_carrier, msg="data inserted")
+                break
             time.sleep(10)
             if driver.find_element(By.XPATH, "//*[text()='Next']").tag_name == "span":
                 break

@@ -86,11 +86,7 @@ class FirmwareUploader:
                 if scrapped_filename == filename.replace(" ", "_"):
                     print("Found id of uploaded file %s", scrapped_id)
                     return scrapped_id
-                else:
-                    print("Warning: Found id of uploaded file %s but name is mismatched", scrapped_id)
-                    print("Actual Filename %s", filename.replace(" ", "_"))
-                    print("Scrapped Filename %s", scrapped_filename)
-                    return scrapped_id
+
         print("Id not found for filename %s", filename)
         return None
 

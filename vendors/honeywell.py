@@ -134,6 +134,7 @@ class Honeywell:
         click_here_options = driver.find_element(By.XPATH, "(//a[contains(text(),'CLICK HERE')])[1]")
         click_here_options.click()
         rows = driver.find_elements(By.XPATH, '//*[@class="table__row fe-search-item"]')
+        count = 0
         for row in rows:
             web_file_name, last_updated, dummy_file_size, dummy_file_type, dummy_download_text = "", "", "", "", ""
             data = rows[rows.index(row)].text
@@ -153,6 +154,8 @@ class Honeywell:
             print(data, download_link, file_name)
             actions = ActionChains(driver)
             actions.move_to_element(download_element).perform()
+            logger.info('HoneyWell: advanced_sensing_tech: Downloading Firmware %s, Version  %s', download_link, version
+                        )
             local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path, file_name)
             # Duplication Check for not to download the files if files exist in local machine
             self.down_ele_click(str(local_file_location.replace("\\", "/")), download_element)
@@ -160,6 +163,9 @@ class Honeywell:
             self.wait_for_down(str(local_file_location.replace("\\", "/")))
             dbdict_carrier = {}
             db_used = Database()
+            logger.debug('<%s> <%s> <%s> <%s> <%s>', web_file_name,'HoneyWell', model_name, version, last_updated)
+            count += 1
+            logger.debug('digit: %s', count)
             for key in self.dbdict:
                 if key == "Manufacturer":
                     dbdict_carrier[key] = "Honeywell"
@@ -229,6 +235,7 @@ class Honeywell:
         # This fn is responsible to crawl for firmware files and write the respective data into db
         driver = self.driver
         crows = driver.find_elements(By.XPATH, ".//tbody//tr")
+        count = 0
         print([ele.text for ele in crows])
         for crow in crows:
             crow_add_desc = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[1]".format(crows.index(crow)+1)).text
@@ -252,10 +259,16 @@ class Honeywell:
                 with open(str(local_file_location.replace("\\", "/")), 'wb') as zip_file:
                     zip_file.write(response.content)
 
+            logger.info('HoneyWell: productivity: Downloading Firmware %s, Version  %s', crow_down_link, 'no version'
+                        )
             print(cfile_name, crow_down_link, crow_add_desc, sep='\n')
             self.wait_for_down(str(local_file_location.replace("\\", "/")))
             dbdict_carrier = {}
             db_used = Database()
+            logger.debug('<%s> <%s> <%s> <%s> <%s>', cfile_name, 'HoneyWell', 'No model_name', 'no version',
+                         'no release date available')
+            count += 1
+            logger.debug('digit: %s', count)
             for key in self.dbdict:
 
                 if key == "Fwfilename":
@@ -479,6 +492,7 @@ class Honeywell:
         select.select_by_visible_text("Firmware")
         time.sleep(5)
         while driver.find_element(By.XPATH, "//div[@class='table__row']"):
+            count = 0
             rows = driver.find_elements(By.XPATH, "//div[@class='table__row']")
             for row in rows:
                 web_file_name, dummy_add_web_data = "", ""
@@ -500,11 +514,16 @@ class Honeywell:
                 local_file_location = r"{}\{}\Honeywell\{}".format(self.path, self.down_file_path,
                                                                    download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element)
+                logger.info('HoneyWell: gas: Downloading Firmware %s, Version  %s', download_link, version)
                 logger.info("Downloading %s and saving as %s ", download_link,
                             str(local_file_location.replace("\\", "/")))
                 self.wait_for_down(local_file_location)
                 dbdict_carrier = {}
                 db_used = Database()
+                count += 1
+                logger.debug('digit: %s', count)
+                logger.debug('<%s> <%s> <%s> <%s> <%s>', web_file_name, 'HoneyWell', model_name, version,
+                             'no release date available')
                 for key in self.dbdict:
 
                     if key == "Fwfilename":
