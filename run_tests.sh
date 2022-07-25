@@ -22,4 +22,5 @@ cd ../amos2022ss01-firmware-downloader || exit 1
 
 # run all unit tests
 python -c "import os, sys; sys.path.append(os.path.abspath(os.path.join('./amos2022ss01-firmware-downloader/', '')))"
+python -c "from utils.chromium_downloader import ChromiumDownloader; ChromiumDownloader().executor()"
 python -m pytest --import-mode=append unit_tests/*

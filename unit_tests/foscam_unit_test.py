@@ -4,7 +4,6 @@ import os
 import sys
 import time
 import unittest
-
 import requests
 import urllib3
 import wget
@@ -13,12 +12,9 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-
-
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
 from utils.chromium_downloader import ChromiumDownloader
-
 # from vendors.foscam import FoscamHomeSecurity
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -47,7 +43,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             "safebrowsing.enabled": True
         })
         opt.add_argument('--remote-debugging-port=9222')
-        opt.binary_location = '/usr/bin/google-chrome'
+        # opt.binary_location = '/usr/bin/google-chrome'
         self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace("\\", '/')
         self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
