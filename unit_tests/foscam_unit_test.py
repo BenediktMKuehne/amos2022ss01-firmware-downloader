@@ -46,6 +46,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             "download.directory_upgrade": True,
             "safebrowsing.enabled": True
         })
+        opt.add_argument('--headless')
         self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe"
         self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
