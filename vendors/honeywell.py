@@ -16,6 +16,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.chrome.service import Service
+
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
@@ -63,6 +65,7 @@ class Honeywell:
                 self.url = vendor_field('honeywell', 'url')
             self.down_file_path = json_data['file_paths']['download_files_path']
         self.path = os.getcwd()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe"
         opt = Options()
         opt.add_experimental_option("prefs", {
             "download.default_directory": r"{}\{}\Honeywell".format(self.path, self.down_file_path),
@@ -70,7 +73,7 @@ class Honeywell:
             "download.directory_upgrade": True,
             "safebrowsing.enabled": True
         })
-        self.driver = webdriver.Chrome(options=opt)
+        self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',

@@ -12,10 +12,12 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+
 
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
-# from utils.chromium_downloader import ChromiumDownloader
+from utils.chromium_downloader import ChromiumDownloader
 
 # from vendors.foscam import FoscamHomeSecurity
 
@@ -44,7 +46,8 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             "download.directory_upgrade": True,
             "safebrowsing.enabled": True
         })
-        self.driver = webdriver.Chrome(options=opt)
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe"
+        self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',
@@ -208,5 +211,5 @@ class FoscamHomeSecurityTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    # ChromiumDownloader().executor()
+    ChromiumDownloader().executor()
     unittest.main()

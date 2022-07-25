@@ -9,6 +9,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.chrome.service import Service
+
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
 from utils.chromium_downloader import ChromiumDownloader
@@ -30,6 +32,7 @@ class WebCode(unittest.TestCase):
             self.url = honeywell_data['url']
             self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe"
         self.db_name = 'test_firmwaredatabase.db'
         opt = Options()
         opt.headless = True
@@ -39,7 +42,7 @@ class WebCode(unittest.TestCase):
             "download.directory_upgrade": True,
             "safebrowsing.enabled": True
         })
-        self.driver = webdriver.Chrome(options=opt)
+        self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',

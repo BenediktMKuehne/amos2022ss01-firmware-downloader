@@ -25,8 +25,12 @@ class ChromiumDownloader:
         print(parent_dir)
         print(response, download_url)
         chromium_zip = wget.download(download_url, fr'{parent_dir}\utils\chromedriver.zip')
+        print(fr'{parent_dir}\utils\chromedriver.zip' if os.path.isfile(fr'{parent_dir}\utils\chromedriver.zip')
+              else None)
         with zipfile.ZipFile(chromium_zip, 'r') as zip_ref:
-            zip_ref.extractall()
+            zip_ref.extractall(fr'{parent_dir}\utils')
+        if os.path.isfile(fr'{parent_dir}\utils\chromedriver.exe'):
+            print(fr'file found and is at {parent_dir}\utils\chromedriver.exe')
         os.remove(chromium_zip)
 
     def executor(self):
