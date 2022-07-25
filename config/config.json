@@ -188,7 +188,7 @@
     "password": ""
   },
   "default": {
-    "interval": 1440,
+    "interval": 2880,
     "ignore": true,
     "url": "",
     "user": "",

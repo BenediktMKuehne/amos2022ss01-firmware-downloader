@@ -4,7 +4,9 @@ import sqlite3
 import requests
 from bs4 import BeautifulSoup
 from utils.database import Database
+from utils.Logs import get_logger
 
+logger = get_logger("upload.upload")
 CONFIG_PATH = os.path.join("config", "config.json")
 DATA={}
 with open(CONFIG_PATH, "rb") as fp:
@@ -30,10 +32,10 @@ class FirmwareUploader:
         for cookie in resp.cookies:
             self.cookies[cookie.name] = cookie.value #saving csrftoken and seesionid cookies
         if set(["csrftoken", "sessionid"]).issubset(self.cookies.keys()):
-            print("authentication is successful")
+            logger.info("authentication is successful")
         else:
-            print("authentication failed")
-        print(self.cookies)
+            logger.error("authentication failed")
+        logger.info(self.cookies)
 
     def start_fw_analysis(self, fw_):
         data = {
@@ -55,10 +57,10 @@ class FirmwareUploader:
         }
         resp = requests.post(self.start_analysis_url, data=data, cookies=self.cookies)
         if resp.status_code == 200:
-            print("Started firmware analysis successfully")
+            logger.info("Started firmware analysis successfully")
             return True
         else:
-            print("Failed to start firmware analysis")
+            logger.error("Failed to start firmware analysis")
             return False
 
     def upload_fw(self, fw_):
@@ -69,7 +71,7 @@ class FirmwareUploader:
             }
             resp = requests.post(self.upload_fw_url, files=files, headers=headers, cookies=self.cookies, allow_redirects=False)
             if resp.content == b'successful upload':
-                print("File is uploaded successfully")
+                logger.info("File is uploaded successfully")
                 return True
             else:
                 return False
@@ -84,10 +86,10 @@ class FirmwareUploader:
             scrapped_id = item.get("value")
             if "selected" in item.attrs.keys():
                 if scrapped_filename == filename.replace(" ", "_"):
-                    print("Found id of uploaded file %s", scrapped_id)
+                    logger.info("Found id of uploaded file %s", scrapped_id)
                     return scrapped_id
 
-        print("Id not found for filename %s", filename)
+        logger.error("Id not found for filename %s", filename)
         return None
 
     def analysis(self, db_name):
@@ -111,7 +113,7 @@ class FirmwareUploader:
                         conn.commit()
 
         except sqlite3.Error as er_:
-            print('SQLite error: %s' % (' '.join(er_.args)))
+            logger.error('SQLite error: %s' % (' '.join(er_.args)))
 
         conn.close()
 
@@ -123,7 +125,6 @@ class FirmwareUploader:
         try:
             cursor.execute("select * from FWDB WHERE Uploadedonembark=''")
             data_list = cursor.fetchall()
-            print(data_list)
             self.authenticate(DATA['uploader']['username'], DATA['uploader']['password'])
             fw_metadata = {}
             for file in data_list:
@@ -143,4 +144,4 @@ class FirmwareUploader:
             self.analysis(db_name)
 
         except sqlite3.Error as er_:
-            print('SQLite error: %s' % (' '.join(er_.args)))
+            logger.error('SQLite error: %s' % (' '.join(er_.args)))
