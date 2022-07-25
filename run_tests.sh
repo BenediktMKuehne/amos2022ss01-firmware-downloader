@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+
+sudo apt-get install unzip
+
+# download chromedriver
+wget https://chromedriver.storage.googleapis.com/103.0.5060.134/chromedriver_linux64.zip
+
+unzip chromedriver_linux64.zip
+sudo mv chromedriver /usr/local/bin
+sudo chown root:root /usr/local/bin/chromedriver
+sudo chmod +x /usr/local/bin/chromedriver
+
+# Export paths
 export PYTHONPATH="$PYTHONPATH: ../amos2022ss01-firmware-downloader"
 export PIPENV_VENV_IN_PROJECT="True"
 

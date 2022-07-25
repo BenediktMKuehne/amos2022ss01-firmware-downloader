@@ -47,7 +47,5 @@ jobs:
         run: |
           pwd
           pipenv install --dev
-          chmod u+r+x chrome_driver.sh
-          ./chrome_driver.sh
           chmod u+r+x run_tests.sh
           ./run_tests.sh
