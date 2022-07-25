@@ -47,5 +47,5 @@ jobs:
         run: |
           pwd
           pipenv install --dev
-          chmod u+r+x run_tests.sh
+          chmod +uawx run_tests.sh
           ./run_tests.sh
