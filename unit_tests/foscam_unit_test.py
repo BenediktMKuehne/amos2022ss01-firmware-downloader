@@ -2,9 +2,9 @@ import inspect
 import json
 import os
 import sys
+import platform
 import time
 import unittest
-
 import requests
 import urllib3
 import wget
@@ -12,11 +12,10 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-
+from selenium.webdriver.chrome.service import Service
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
 from utils.chromium_downloader import ChromiumDownloader
-
 # from vendors.foscam import FoscamHomeSecurity
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -37,6 +36,9 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             self.url = foscam_data['url']
             self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
+        self.system = platform.system().lower()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe" if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver"
         opt = Options()
         opt.add_experimental_option("prefs", {
             "download.default_directory": r"{}\{}\Foscam".format(self.path, self.down_file_path),
@@ -44,7 +46,10 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             "download.directory_upgrade": True,
             "safebrowsing.enabled": True
         })
-        self.driver = webdriver.Chrome(options=opt)
+        opt.add_argument('--remote-debugging-port=9222')
+        # opt.binary_location = '/usr/bin/google-chrome'
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace("\\", '/')
+        self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',

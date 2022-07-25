@@ -1,6 +1,7 @@
 import inspect
 import json
 import os
+import platform
 import sys
 import time
 import unittest
@@ -9,6 +10,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.chrome.service import Service
+
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
 from utils.chromium_downloader import ChromiumDownloader
@@ -30,6 +33,9 @@ class WebCode(unittest.TestCase):
             self.url = honeywell_data['url']
             self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
+        self.system = platform.system().lower()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe" if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver"
         self.db_name = 'test_firmwaredatabase.db'
         opt = Options()
         opt.headless = True
@@ -39,7 +45,7 @@ class WebCode(unittest.TestCase):
             "download.directory_upgrade": True,
             "safebrowsing.enabled": True
         })
-        self.driver = webdriver.Chrome(options=opt)
+        self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',
@@ -179,7 +185,7 @@ class WebCode(unittest.TestCase):
                 actions = ActionChains(driver)
                 actions.move_to_element(download_element).perform()
                 local_file_location = r"{}\unit_tests\{}\Honeywell\{}".format(parent_dir, self.down_file_path,
-                                                                   download_link.split('/')[-1])
+                                                                              download_link.split('/')[-1])
                 self.down_ele_click(local_file_location, download_element, web_file_name)
                 self.wait_for_down(str(local_file_location.replace("\\", "/")))
                 self.assertTrue(str(local_file_location.replace("\\", "/")), msg="Location exists")
