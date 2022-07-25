@@ -37,8 +37,8 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
         self.system = platform.system().lower()
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe" if 'win' in self.system else \
-            fr"{parent_dir}\utils\chromedriver"
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace('\\', '/') if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver".replace('\\', '/')
         opt = Options()
         opt.add_experimental_option("prefs", {
             "download.default_directory": r"{}\{}\Foscam".format(self.path, self.down_file_path),
@@ -48,7 +48,6 @@ class FoscamHomeSecurityTest(unittest.TestCase):
         })
         opt.add_argument('--remote-debugging-port=9222')
         # opt.binary_location = '/usr/bin/google-chrome'
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace("\\", '/')
         self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
             'Fwfileid': '',

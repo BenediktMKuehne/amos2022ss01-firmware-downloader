@@ -34,8 +34,8 @@ class WebCode(unittest.TestCase):
             self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
         self.system = platform.system().lower()
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe" if 'win' in self.system else \
-            fr"{parent_dir}\utils\chromedriver"
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace('\\', '/') if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver".replace('\\', '/')
         self.db_name = 'test_firmwaredatabase.db'
         opt = Options()
         opt.headless = True
