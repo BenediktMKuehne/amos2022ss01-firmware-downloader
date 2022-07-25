@@ -1,4 +1,5 @@
 import os
+import platform
 import zipfile
 import sys
 import inspect
@@ -21,7 +22,16 @@ class ChromiumDownloader:
         """ The fn is used to trigger the api to get the latest version, then it allows to trigger
         download, unzip and delete the zip file"""
         response = requests.get(self.latest_release_url, allow_redirects=True).text
-        download_url = "https://chromedriver.storage.googleapis.com/{}/chromedriver_win32.zip".format(response)
+        sys_carrier = {
+            'linux': 'chromedriver_linux64.zip',
+            'mac': 'chromedriver_mac64.zip',
+            'mac_m1': 'chromedriver_mac64_m1.zip',
+            'win': 'chromedriver_win32.zip'
+        }
+        system = platform.system().lower()
+        print(f"System running on {system}")
+        system = [item for item in sys_carrier if item in system.lower()][0]
+        download_url = "https://chromedriver.storage.googleapis.com/{}/{}".format(response, sys_carrier[system])
         print(parent_dir)
         print(response, download_url)
         chromium_zip = wget.download(download_url, fr'{parent_dir}\utils\chromedriver.zip'.replace('\\', '/'))
