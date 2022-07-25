@@ -33,14 +33,16 @@ class FoscamHomeSecurity:
         with open(os.path.join(parent_dir, 'config', 'config.json'), 'rb') as json_file:
             json_data = json.loads(json_file.read())
             dummy_foscam_data = json_data['foscam']
-            if vendor_field('foscam', 'user') is False:
-                logger.error('<module : foscam > -> user not present')
-            else:
+            if vendor_field('foscam', 'user'):
                 self.email = vendor_field('foscam', 'user')
-            if vendor_field('foscam', 'password') is False:
-                logger.error('<module : foscam > -> password not present')
             else:
+                logger.error('<module : foscam > -> user not present')
+                raise Exception("< module :foscam> user can't be found")
+            if vendor_field('foscam', 'password'):
                 self.password = vendor_field('foscam', 'password')
+            else:
+                logger.error('<module : foscam > -> password not present')
+                raise Exception("< module :foscam> password can't be found")
             if vendor_field('foscam', 'url') is False:
                 logger.error('<module : foscam > -> url not present')
                 self.url = "https://www.foscam.com/downloads/index.html"

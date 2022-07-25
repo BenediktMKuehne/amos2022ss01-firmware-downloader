@@ -36,11 +36,13 @@ def executor_job(mod_, executor):
 def thread_pool(num_threads_, whitelisted_modules_):
     with ThreadPoolExecutor(num_threads_) as executor:
         for module in whitelisted_modules_:
-            if module in config:
+            if module in config and "interval" in config[module]:
                 logger.info("Starting %s downloader ...", module)
                 schedule.every(config[module]['interval']).minutes.do(executor_job, module, executor)
-            else:
+            elif "interval" in config["default"]:
                 schedule.every(config['default']['interval']).minutes.do(executor_job, module, executor)
+            else:
+                schedule.every(1440).minutes.do(executor_job, module, executor)
         while True:
             schedule.run_pending()
             time.sleep(1)
@@ -50,18 +52,27 @@ def get_modules(skip):
     mods = []
     for mod in os.listdir(VENDORS_FILE):
         if mod.endswith(".py"):
-            if mod.split('.')[0] in config:
-                if config[mod.split('.')[0]]["ignore"] is True and skip is True:
+            if mod.split('.')[0] in config and "ignore" in config[mod.split('.')[0]]:
+                if "ignore" not in config[mod.split('.')[0]]:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
+                    mods.append(mod.split('.')[0])
+                elif config[mod.split('.')[0]]["ignore"] is True and skip is True:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
                 elif config[mod.split('.')[0]]["ignore"] is False and skip is False:
                     MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
             else:
-                if config['default']['ignore'] is True and skip is True:
+                if "ignore" not in config['default']:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
+                    mods.append(mod.split('.')[0])
+                elif config['default']['ignore'] is True and skip is True:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
                 elif config['default']['ignore'] is False and skip is False:
                     MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
                     mods.append(mod.split('.')[0])
+
     return mods
 
 if __name__ == "__main__":

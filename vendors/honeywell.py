@@ -47,14 +47,16 @@ class Honeywell:
         with open(os.path.join(parent_dir, 'config', 'config.json'), 'rb') as json_file:
             json_data = json.loads(json_file.read())
             dummy_honeywell_data = json_data['honeywell']
-            if vendor_field('honeywell', 'user') is False:
-                logger.error('<module : honeywell > -> user not present')
-            else:
+            if vendor_field('honeywell', 'user'):
                 self.email = vendor_field('honeywell', 'user')
-            if vendor_field('honeywell', 'password') is False:
-                logger.error('<module : honeywell > -> password not present')
             else:
+                logger.error('<module : honeywell > -> user not present')
+                raise Exception("< module :honeywell> user can't be found")
+            if vendor_field('honeywell', 'password'):
                 self.password = vendor_field('honeywell', 'password')
+            else:
+                logger.error('<module : honeywell > -> password not present')
+                raise Exception("< module :honeywell> password can't be found")
             if vendor_field('honeywell', 'url') is False:
                 print('error url')
                 logger.error('<module : honeywell > -> url not present')

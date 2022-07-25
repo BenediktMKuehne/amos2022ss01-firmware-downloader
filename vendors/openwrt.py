@@ -34,7 +34,7 @@ class Openwrt:
                 self.password = vendor_field('openwrt', 'password')
             else:
                 logger.error('<module : openwrt > -> password not present')
-                raise Exception("< module :openwrt> password can't be found")
+                raise Exception("< module :openwrt> user can't be found")
             if vendor_field('openwrt', 'url'):
                 self.url = vendor_field('openwrt', 'url')
             else:

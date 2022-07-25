@@ -38,6 +38,7 @@ with open(CONFIG_PATH, "rb") as fp:
         else:
             print('error')
             logger.error('<module : Ge> -> user not present')
+            raise Exception("< module :Ge> user can't be found")
             # using hardcode user for GE
     # password check
     if config_check('ge', 'password'):
@@ -48,6 +49,7 @@ with open(CONFIG_PATH, "rb") as fp:
         else:
             print('error')
             logger.error('<module : Ge> -> password not present')
+            raise Exception("< module :Ge> password can't be found")
             # using hardcode user for GE
 
     # Url check
