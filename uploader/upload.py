@@ -113,7 +113,7 @@ class FirmwareUploader:
                         conn.commit()
 
         except sqlite3.Error as er_:
-            logger.error('SQLite error: %s' % (' '.join(er_.args)))
+            logger.error('SQLite error: %s', (' '.join(er_.args)))
 
         conn.close()
 
@@ -144,4 +144,4 @@ class FirmwareUploader:
             self.analysis(db_name)
 
         except sqlite3.Error as er_:
-            logger.error('SQLite error: %s' % (' '.join(er_.args)))
+            logger.error('SQLite error: %s', (' '.join(er_.args)))
