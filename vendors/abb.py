@@ -38,7 +38,7 @@ with open(CONFIG_PATH, "rb") as fp:
         URL = vendor_field('abb', 'url')
 
 
-def download_single_file(file_metadata):
+def download_single_file(file_metadata, folder):
     url = file_metadata["Fwdownlink"]
     logger.debug('<module ABB> -> Downloading Firmware <%s> <%s>', file_metadata['Fwfilename'], file_metadata['Version'])
     logger.debug('<Module ABB> -> Downloading Firmware From Web page <%s>', url)
@@ -51,7 +51,7 @@ def download_single_file(file_metadata):
     old_file_name_list = file_metadata["Fwfilelinktolocal"].split("/")
     old_file_name_list[-1] = file_name # updated filename
     file_metadata["Fwfilelinktolocal"] = "/".join(old_file_name_list)
-    file_path_to_save = os.path.abspath(DATA['file_paths']['download_files_path'] + "/" + file_metadata["Fwfilelinktolocal"])
+    file_path_to_save = os.path.abspath(folder + "/" + file_metadata["Fwfilelinktolocal"])
     file_metadata["Fwfilelinktolocal"] = file_path_to_save
     file_metadata["Fwfilename"] = file_path_to_save.split("\\")[-1]
     logger.debug('<%s> -> Downloading Firmware <%s>', url, file_path_to_save)
@@ -60,13 +60,13 @@ def download_single_file(file_metadata):
     write_metadata_to_db([file_metadata])
     logger.info("File metadata added in DB")
 
-def download_list_files(metadata, max_files=-1): #max_files -1 means download all files
+def download_list_files(metadata, file_path, max_files=-1): #max_files -1 means download all files
     if max_files == -1:
         max_files = len(metadata)
     if max_files > len(metadata):
         max_files = len(metadata)
     for file_ in range(max_files):
-        download_single_file(metadata[file_])
+        download_single_file(metadata[file_], file_path)
 
 def write_metadata_to_db(metadata):
     logger.info("Going to write metadata in db")
@@ -166,7 +166,7 @@ def main():
     metadata = transform_metadata_format_ours(raw_fw_list, local_storage_dir=os.path.abspath(folder))
     logger.info("Printing first transformed document metadata")
     logger.info(json.dumps(metadata[0], indent=4))
-    download_list_files(metadata, max_files=5)
+    download_list_files(metadata, file_path=folder, max_files=5)
 
 
 if __name__ == "__main__":
