@@ -11,14 +11,14 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 
-DB_NAME = os.path.join(os.getcwd(), "schneiderelectrictempfirmware.db")
+DB_NAME = "firmwaredatabase.db"
 CONFIG_PATH = os.path.join(parent_dir, "config", "config.json")
 DATA={}
 with open(CONFIG_PATH, "rb") as fp:
     DATA = json.load(fp)
 
 def setup_db():
-    db_ = Database(db_path=DB_NAME)
+    db_ = Database()
     db_.db_check()
     db_.create_table()
 
@@ -32,11 +32,6 @@ class SchneiderUnitTest(unittest.TestCase):
         path = os.path.join(os.getcwd(), dest)
         self.gt_file_path = os.path.join(path, gt_file)
         self.gt_url = "https://download.schneider-electric.com/files?p_enDocType=Firmware&p_File_Name=PM5560_PM5563_V2.7.4_Release.zip&p_Doc_Ref=PM5560_PM5563_V2.7.4_Release"
-        # remove all schneider electric data in test database
-        delete_command = "DELETE FROM FWDB where Manufacturer='schneider_electric'"
-        conn = sqlite3.connect(DB_NAME)
-        curs = conn.cursor()
-        curs.execute(delete_command)
 
     def test_download(self):
         dummy_data = {
@@ -90,22 +85,50 @@ class SchneiderUnitTest(unittest.TestCase):
 	}
         conn = sqlite3.connect(DB_NAME)
         curs = conn.cursor()
-        select_command = "select * from FWDB WHERE Manufacturer='schneider_electric'"
-        curs.execute(select_command)
-        records = len(curs.fetchall())
-        #Make sure no record exist for schneider_electric
-        self.assertEqual(records, 0, msg="There should be no record in db")
+        select_command = "select * from FWDB WHERE Manufacturer='" + dummy_data["Manufacturer"] + "' AND Fwdownlink='" + dummy_data["Fwdownlink"] + "';"
         # Add data for schneider electric
-        write_metadata_to_db([dummy_data], db_path=DB_NAME)
+        write_metadata_to_db([dummy_data])
         # Now test if one record exist for schneider_electric
         curs.execute(select_command)
         records = len(curs.fetchall())
         self.assertEqual(records, 1, msg="There should be only one record in db")
-        print(f"Database contains {records} firmwares for schneider_electric")
 
-    def tearDown(self):
-        if os.path.exists(DB_NAME):
-            os.remove(DB_NAME)
+    def test_duplicate_data_check(self):
+        dummy_data = {
+            'Fwfileid': '',
+            'Fwfilename': "",
+            'Manufacturer': 'schneider_electric',
+            'Modelname': "1.0.0",
+            'Version': "1.0.0",
+            'Type': "firmware",
+            'Releasedate': "",
+            'Checksum': '',
+            'Filesize': '',
+            'Lasteditdate': '',
+            'Embatested': '',
+            'Embalinktoreport': '',
+            'Embarklinktoreport': '',
+            'Fwdownlink': "https://test.com/firmware.zip",
+            'Fwfilelinktolocal': self.gt_file_path,
+            'Fwadddata': '',
+            'Uploadedonembark': False,
+            'Embarkfileid': '',
+            'Startedanalysisonembark': False
+        }
+        conn = sqlite3.connect(DB_NAME)
+        curs = conn.cursor()
+        select_command = "select * from FWDB WHERE Manufacturer='" + dummy_data["Manufacturer"] + "' AND Fwdownlink='" + dummy_data["Fwdownlink"] + "';"
+        # Add data for schneider electric
+        write_metadata_to_db([dummy_data])
+        # Now add same data multiple times to check if duplicates record exist or not with same download link
+        write_metadata_to_db([dummy_data])
+        write_metadata_to_db([dummy_data])
+        write_metadata_to_db([dummy_data])
+        # Now test if exactly one record exist for schneider_electric for this download link
+        curs.execute(select_command)
+        records = len(curs.fetchall())
+        self.assertEqual(records, 1, msg="There should be only one record in db")
+
 
 if __name__ == "__main__":
     unittest.main()
