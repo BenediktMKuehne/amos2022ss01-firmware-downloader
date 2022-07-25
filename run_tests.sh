@@ -7,8 +7,8 @@ wget https://chromedriver.storage.googleapis.com/103.0.5060.134/chromedriver_lin
 
 unzip chromedriver_linux64.zip
 sudo mv chromedriver /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/
-sudo chown root:root /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/chromedriver
-sudo chmod +x /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/chromedriver
+sudo chown root:root /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/
+sudo chmod +x /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/chromedriver.exe
 
 # Export paths
 export PYTHONPATH="$PYTHONPATH: ../amos2022ss01-firmware-downloader"
