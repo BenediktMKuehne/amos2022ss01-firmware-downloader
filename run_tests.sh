@@ -1,15 +1,5 @@
 #!/usr/bin/env bash
 
-sudo apt-get install unzip
-
-# download chromedriver
-#wget https://chromedriver.storage.googleapis.com/103.0.5060.134/chromedriver_linux64.zip
-#
-#unzip -d /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/ chromedriver_linux64.zip
-##sudo mv chromedriver /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/
-##sudo chown root:root /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/
-#sudo chmod +x /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/chromedriver.exe
-
 # Export paths
 export PYTHONPATH="$PYTHONPATH: ../amos2022ss01-firmware-downloader"
 export PIPENV_VENV_IN_PROJECT="True"
@@ -20,8 +10,11 @@ cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd || exit 1
 # go to parent folder
 cd ../amos2022ss01-firmware-downloader || exit 1
 
-# run all unit tests
+# run certain python prog and change file permission for chromedriver
 python -c "import os, sys; sys.path.append(os.path.abspath(os.path.join('./amos2022ss01-firmware-downloader/', '')))"
 python -c "from utils.chromium_downloader import ChromiumDownloader; ChromiumDownloader().executor()"
 sudo chmod +rwx /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/chromedriver.exe
+sudo chmod +rwx /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/chromedriver
+
+# run all unit tests
 python -m pytest --import-mode=append unit_tests/*
