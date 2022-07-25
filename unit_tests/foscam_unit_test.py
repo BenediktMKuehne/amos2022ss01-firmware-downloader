@@ -48,7 +48,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
         })
         opt.add_argument('--remote-debugging-port=9222')
         opt.binary_location = '/usr/bin/google-chrome'
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe"
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace("\\", '/')
         self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
             'Fwfileid': '',
