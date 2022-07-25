@@ -25,17 +25,17 @@ class Openwrt:
         with open(os.path.join(parent_dir, 'config', 'config.json'), 'rb') as json_file:
             json_data = json.loads(json_file.read())
             dummy_openwrt_data = json_data['openwrt']
-            if vendor_field('openwrt', 'user') is False:
+            if vendor_field('openwrt', 'user'):
+                self.email = vendor_field('openwrt', 'user')
+            else:
                 logger.error('<module : openwrt > -> user not present')
                 raise Exception("< module :openwrt> user can't be found")
-            else:
-                self.email = vendor_field('openwrt', 'user')
 
-            if vendor_field('openwrt', 'password') is False:
+            if vendor_field('openwrt', 'password'):
+                self.password = vendor_field('openwrt', 'password')
+            else:
                 logger.error('<module : openwrt > -> password not present')
                 raise Exception("< module :openwrt> user can't be found")
-            else:
-                self.password = vendor_field('openwrt', 'password')
                 
             if vendor_field('openwrt', 'url'):
                 self.url = vendor_field('openwrt', 'url')
