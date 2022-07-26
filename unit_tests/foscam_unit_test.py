@@ -17,12 +17,11 @@ from utils.database import Database
 from utils.metadata_extractor import get_hash_value
 from utils.chromium_downloader import ChromiumDownloader
 # from vendors.foscam import FoscamHomeSecurity
-
+sys.path.append(os.path.abspath(os.path.join('.', '')))
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
-sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 
 class FoscamHomeSecurityTest(unittest.TestCase):
@@ -36,7 +35,7 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             self.url = foscam_data['url']
             self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
-        self.system = platform.system().lower()
+        self.system = platform.platform().lower()
         self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace('\\', '/') if 'win' in self.system else \
             fr"{parent_dir}\utils\chromedriver".replace('\\', '/')
         opt = Options()

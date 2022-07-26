@@ -17,7 +17,7 @@ class ChromiumDownloader:
     def __init__(self):
         self.url = 'https://chromedriver.storage.googleapis.com'
         self.latest_release_url = 'https://chromedriver.storage.googleapis.com/LATEST_RELEASE'
-        self.system = platform.system().lower()
+        self.system = platform.platform().lower()
 
     def load_and_extract(self):
         """ The fn is used to trigger the api to get the latest version, then it allows to trigger
@@ -44,6 +44,7 @@ class ChromiumDownloader:
 
         if os.path.isfile(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/')) and 'win' not in self.system:
             print(fr'file found and is at {parent_dir}\utils\chromedriver'.replace('\\', '/'))
+            os.chmod(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/'), 777)
 
         os.remove(chromium_zip)
 
