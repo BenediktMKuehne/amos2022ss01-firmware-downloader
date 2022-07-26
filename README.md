@@ -45,7 +45,7 @@ Use the installer.sh to install project.
 
 ``` First of all follow the steps to install embark (https://github.com/e-m-b-a/embark) in your kali linux. ```
 
-Then:
+Then Run Follow Command in the root folder of your project:
 
 ```bash
 sudo bash ./installer.sh
