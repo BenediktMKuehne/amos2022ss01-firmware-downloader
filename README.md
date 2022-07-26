@@ -36,11 +36,16 @@ The software will only be applied to websites that do not object to automated do
 ## Requirements:
 
   Linux
+  Embark (https://github.com/e-m-b-a/embark)
   Pycharm (Recommended)
 
 ## Installation
 
 Use the installer.sh to install project.
+
+``` First of all follow the steps to install embark (https://github.com/e-m-b-a/embark) in your kali linux. ```
+
+Then:
 
 ```bash
 sudo bash ./installer.sh
