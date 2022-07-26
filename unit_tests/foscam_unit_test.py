@@ -148,15 +148,15 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                         brow_cookies = self.clean_cookies(driver.get_cookies())
                         file_name = self.url_call_file_name(api_url, brow_cookies)
                         local_file_location = fr"{parent_dir}\unit_tests\{self.down_file_path}\Foscam\{str(f'{file_name}')}"
-                        check_path = r"{}\{}\Foscam".format(self.path, self.down_file_path).replace('\\', '/')
+                        check_path = fr"{parent_dir}\unit_tests\{self.down_file_path}\Foscam".replace('\\', '/')
                         if not os.path.exists(check_path):
-                            print(os.path.isfile(check_path))
-                            os.mkdir(check_path)
+                            print(f'path does exists: {os.path.exists(check_path)}, so this will be created.')
+                            os.makedirs(check_path)
 
                         if not os.path.isfile(local_file_location.replace("\\", "/")) and file_name is not None:
                             print("The file is not present in the system so the file %s will be downloaded to path %s",
                                   file_name, local_file_location)
-                            wget.download(down_link, local_file_location)
+                            wget.download(down_link, local_file_location.replace("\\", "/"))
 
                         while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
                                 file_name is not None:
