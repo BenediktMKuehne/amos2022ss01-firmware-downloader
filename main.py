@@ -1,26 +1,88 @@
+import argparse
+import json
 import os
-import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+import schedule
+from utils.Logs import get_logger
+from uploader.upload import FirmwareUploader
 
-#creating list of threads
-threads = []
+config_path = os.path.join("config", "config.json")
+with open(config_path, "rb") as fp:
+    config = json.load(fp)
+logger = get_logger("main")
+parser = argparse.ArgumentParser()
+parser.add_argument("--num-threads", type=int, default=2, help="Number of parallel executing modules")
+args = parser.parse_args()
+VENDORS_FILE = 'vendors'
 
-def main():
-    vendors_path = './vendors'
-    for file in os.listdir(vendors_path):
-        if file.endswith(".py"):
-            #creating thread
-            process = threading.Thread(target = exec(open("./" + vendors_path + "/" + file).read()))
-            #starting thread
-            process.start()
-            #appending thread to a list
-            threads.append(process)
-            continue
-        else:
-            continue
-    
-    #waiting until thread n completely executed
-    for process in threads:
-        process.join()
+MODULES_STATUS = {}
+
+def runner(mod):
+    MODULES_STATUS[mod] = 'running'
+    print(MODULES_STATUS)
+    os.system("python vendors/" + mod + ".py")
+    MODULES_STATUS[mod] = 'finished'
+    print(MODULES_STATUS)
+    if len(list(set(list(MODULES_STATUS.values())))) == 1:
+        fw_ = FirmwareUploader()
+        fw_.anaylise_data_file("firmwaredatabase.db")
 
 
-main()
+def executor_job(mod_, executor):
+    _ = executor.submit(runner, mod_)
+
+
+def thread_pool(num_threads_, whitelisted_modules_):
+    with ThreadPoolExecutor(num_threads_) as executor:
+        for module in whitelisted_modules_:
+            if module in config and "interval" in config[module]:
+                logger.info("Starting %s downloader ...", module)
+                # executor_job(module, executor) # for testing
+                schedule.every(config[module]['interval']).minutes.do(executor_job, module, executor)
+            elif "interval" in config["default"]:
+                schedule.every(config['default']['interval']).minutes.do(executor_job, module, executor)
+            else:
+                schedule.every(1440).minutes.do(executor_job, module, executor)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+
+def get_modules(skip):
+    mods = []
+    for mod in os.listdir(VENDORS_FILE):
+        if mod.endswith(".py"):
+            if mod.split('.')[0] in config and "ignore" in config[mod.split('.')[0]]:
+                if "ignore" not in config[mod.split('.')[0]]:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
+                    mods.append(mod.split('.')[0])
+                elif config[mod.split('.')[0]]["ignore"] is True and skip is True:
+                    mods.append(mod.split('.')[0])
+                elif config[mod.split('.')[0]]["ignore"] is False and skip is False:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
+                    mods.append(mod.split('.')[0])
+            else:
+                if "ignore" not in config['default']:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
+                    mods.append(mod.split('.')[0])
+                elif config['default']['ignore'] is True and skip is True:
+                    mods.append(mod.split('.')[0])
+                elif config['default']['ignore'] is False and skip is False:
+                    MODULES_STATUS[mod.split('.')[0]] = 'awaiting'
+                    mods.append(mod.split('.')[0])
+
+    return mods
+
+if __name__ == "__main__":
+    logger.info("Starting runner...")
+    num_threads = args.num_threads
+    whitelisted_modules = []
+    skip_modules = []
+    skip_modules = get_modules(True)
+    whitelisted_modules = get_modules(False)
+    print("Following modules are skipped")
+    print(skip_modules)
+    print("Following modules are enabled")
+    print(whitelisted_modules)
+    thread_pool(num_threads, whitelisted_modules)

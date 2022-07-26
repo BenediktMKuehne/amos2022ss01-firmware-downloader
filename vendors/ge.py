@@ -1,119 +1,237 @@
-import requests
-from bs4 import BeautifulSoup
 import os
 import sys
+import time
+import json
+import inspect
+from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-sys.path.append(os.path.abspath(os.path.join('..', '')))  
-from database import Database
-from check_duplicates import check_duplicates
-import requests
 from webdriver_manager.chrome import ChromeDriverManager
-import time
+from utils.database import Database
+from utils.check_duplicates import check_duplicates
+from utils.Logs import get_logger
+from utils.modules_check import config_check
+from utils.metadata_extractor import get_hash_value, metadata_extractor
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+sys.path.append(os.path.abspath(os.path.join('.', '')))
 
-directories_link = ["/communications/mds/software.asp?directory=Orbit_MCR", "/communications/mds/software.asp?directory=Master_Station", "/communications/mds/software.asp?directory=TD-Series", "/communications/mds/software.asp?directory=TD-Series/Support+Items", "/communications/mds/software.asp?directory=SD_Series", "/communications/mds/software.asp?directory=TransNET/Previous", "/communications/mds/software.asp?directory=SD_Series", "/communications/mds/software.asp?directory=entraNET"]
+logger = get_logger("vendors.ge")
+links=[]
 
-db_name = '../firmwaredatabase.db'
-user = 'tariqmagsi125@gmail.com'
-passw = 'Cs!-56478'
+USERNAME = ''
+PASSWORD = ''
+URL = ''
+CONFIG_PATH = os.path.join(parent_dir, "config", "config.json")
+DATA={}
+with open(CONFIG_PATH, "rb") as fp:
+    DATA = json.load(fp)
+    # user check
+    if config_check('ge', 'user'):
+        USERNAME = DATA['ge']['user']
+    else:
+        if config_check('default', 'user'):
+            USERNAME = DATA['default']['user']
+        else:
+            print('error')
+            logger.error('<module : Ge> -> user not present')
+            raise Exception("< module :Ge> user can't be found")
+            # using hardcode user for GE
+    # password check
+    if config_check('ge', 'password'):
+        PASSWORD = DATA['ge']['password']
+    else:
+        if config_check('default', 'password'):
+            PASSWORD = DATA['default']['password']
+        else:
+            print('error')
+            logger.error('<module : Ge> -> password not present')
+            raise Exception("< module :Ge> password can't be found")
+            # using hardcode user for GE
+
+    # Url check
+    if config_check('ge', 'url'):
+        URL = DATA['ge']['url']
+    else:
+        if config_check('default', 'url'):
+            URL = DATA['default']['url']
+        else:
+            print('error')
+            logger.error('<module : Ge> -> url not present')
+            # using hardcode user for GE
+            logger.info('<module : Ge> -> using hardcode url')
+            URL = 'https://www.gegridsolutions.com'
 
 #inserting meta data into database
-def insert_into_db(data):
-    db = Database(dbname=db_name)
-    if db_name not in os.listdir('.'):
-        db.create_table()
-    db.insert_data(dbdictcarrier=data)
-    print("data inserted")
+def insert_into_db(fwdata):
+    db_ = Database()
+    db_.insert_data(dbdictcarrier=fwdata)
+    print(fwdata)
+    logger.info('<Metadata added to database>')
+    logger.debug('<%s> <GE> <%s> <%s>', fwdata['Fwfilename'], fwdata['Modelname'], fwdata['Releasedate'])
 
 #download firmware image
-def download_file(url, file_path_to_save, data0, data1, folder, filename, link, main_url, click):
-    local_uri = "./" + folder + "/" + filename
+def download_file(data):
+    logger.debug('<module GE> -> Downloading Firmware <%s>', data['data0'])
+    local_uri = data["file_path_to_save"]
     req_data = {
-		'Fwfileid': 'FILE',
-		'Manufacturer': 'GE',
-		'Modelname': data0,
-		'Version': '',
-		'Type': '',
-		'Releasedate': data1,
-		'Checksum': 'None',
-		'Embatested': '',
-		'Embalinktoreport': '',
-		'Embarklinktoreport': '',
-		'Fwdownlink': url,
-		'Fwfilelinktolocal': local_uri,
-		'Fwadddata': ''
+        'Fwfileid': '',
+        'Fwfilename': data['data0'],
+        'Manufacturer': 'GE',
+        'Modelname': os.path.splitext(data['data0'])[0],
+        'Version': '',
+        'Type': '',
+        'Releasedate': data['data1'],
+        'Filesize': '',
+        'Lasteditdate': '',
+        'Checksum': 'None',
+        'Embatested': '',
+        'Embalinktoreport': '',
+        'Embarklinktoreport': '',
+        'Fwdownlink': data['url'],
+        'Fwfilelinktolocal': local_uri,
+        'Fwadddata': '',
+        'Uploadedonembark': '',
+        'Embarkfileid': '',
+        'Startedanalysisonembark': ''
 	}
 
-    if(check_duplicates(req_data, db_name) == False):
-        if(link != "javascript:;"):
-            print(f"Downloading {url} and saving as {file_path_to_save}")
-            resp = requests.get(url, allow_redirects=True)
+    if check_duplicates(req_data, data['db_name']) is False or data['is_file_download'] is True:
+        logger.debug('<%s> -> Downloading Firmware <%s>', data['url'], local_uri)
+        logger.debug('<Module GE> -> Downloading Firmware From Web page <%s>', data['url'])
+        if data['link'] != "javascript:;":
+            logger.info("<%s> -> Downloading Firmware <%s>", data['url'], data['file_path_to_save'])
+            resp = requests.get(data['url'], allow_redirects=True)
             if resp.status_code != 200:
+                logger.error("Invalid URL<%s> or file not found", data['url'])
                 raise ValueError("Invalid Url or file not found")
-            with open(file_path_to_save, "wb") as f:
-                f.write(resp.content)
-            insert_into_db(req_data)
+            with open(data['file_path_to_save'], "wb") as fp_:
+                fp_.write(resp.content)
+            if data['is_file_download'] is False:
+                print(req_data)
+                if os.path.isfile(local_uri):
+                    req_data['Checksum'] = get_hash_value(local_uri.replace('\\', '/'))
+                    meta_data = metadata_extractor(local_uri.replace('\\', '/'))
+                    req_data['Filesize'] = meta_data['File Size']
+                    req_data['Lasteditdate'] = meta_data['Last Edit Date']
+                insert_into_db(req_data)
         else:
+            logger.info("<%s> -> Downloading Firmware <%s>", data['main_url'], data['file_path_to_save'])
             options = webdriver.ChromeOptions()
-            prefs = {"download.default_directory" : file_path_to_save}
+            prefs = {"download.default_directory" : data['file_path_to_save']}
             options.add_argument("headless")
-            options.add_experimental_option("prefs",prefs)
-            driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
-            print(click)
+            options.add_experimental_option("prefs", prefs)
+            driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
             # Go to your page url
             try:
-                URL = "https://www.gegridsolutions.com/Passport/Login.aspx"
-                driver.get(URL)
-                driver.find_element(By.ID, "ctl00_BodyContent_Login1_UserName").send_keys(user)
-                driver.find_element(By.ID, "ctl00_BodyContent_Login1_Password").send_keys(passw)
+                url_ = "https://www.gegridsolutions.com/Passport/Login.aspx"
+                driver.get(url_)
+                driver.find_element(By.ID, "ctl00_BodyContent_Login1_UserName").send_keys(USERNAME)
+                driver.find_element(By.ID, "ctl00_BodyContent_Login1_Password").send_keys(PASSWORD)
                 driver.find_element(By.ID, "ctl00_BodyContent_Login1_LoginButton").click()
                 # Get button you are going to click by its id ( also you could us find_element_by_css_selector to get element by css selector)
-                driver.get(main_url)
-                driver.execute_script(click)
-                time.sleep(60)
+                driver.get(data['main_url'])
+                driver.execute_script(data['click'])
+                time.sleep(10)
                 driver.close()
-                insert_into_db(req_data)
-            except:
-                print("Error in downloading")
+                if data['is_file_download'] is False:
+                    print(local_uri)
+                    if os.path.isfile(local_uri):
+                        uri = local_uri
+                        print(local_uri)
+                        print(uri)
+                        req_data['Checksum'] = get_hash_value(uri.replace('\\', '/'))
+                        meta_data = metadata_extractor(uri.replace('\\', '/'))
+                        req_data['Filesize'] = meta_data['File Size']
+                        req_data['Lasteditdate'] = meta_data['Last Edit Date']
+                        print(req_data)
+                    insert_into_db(req_data)
+            except Exception as er_:
+                logger.error("<module GE> Error in downloading: %s", data['url'])
+                raise ValueError('%s' % er_) from er_
 
     else:
-        print("Data already exist!")
+        logger.error("<module GE>: <%s> Firmware already exist!", data['data0'])
 
 #parse html and start clean according to our need
-def scraper_parse(url, folder, base_url):
-    dest = os.path.join(os.getcwd(), folder)
+def scraper_parse(url, base_url):
+    dest = os.path.join(parent_dir, DATA['file_paths']['download_files_path'])
     try:
         if not os.path.isdir(dest):
             os.mkdir(dest)
-    except Exception as e:
-        raise ValueError(f"{e}")
+    except Exception as er_:
+        raise ValueError("%s" % er_) from er_
     cont = requests.get(url)
     soup = BeautifulSoup(cont.text, 'html.parser')
     items = soup.find_all("tr", valign="top")
     data = []
     click = ""
+
     for item in items:
         sub_data = []
         items_temp = item.find_all("td")
-        if(len(items_temp)):
-            if(items_temp[0].get_text().find(".zip") != -1 or items_temp[0].get_text().find(".mpk") != -1 or items_temp[0].get_text().find(".S28") != -1):
+        if len(items_temp):
+            if items_temp[0].get_text().find(".zip") != -1 or items_temp[0].get_text().find(".mpk") != -1 or items_temp[0].get_text().find(".S28") != -1:
+                logger.debug('<Firmware Files Count>: %d', len(items_temp))
                 for item_temp in items_temp:
-                    if(items_temp.index(item_temp) == 0):
+                    if items_temp.index(item_temp) == 0:
                         link = item_temp.findChild("a").get("href")
-                        if(link == "javascript:;"):
+                        file_path = ''
+                        arg_data = {
+                            'url': base_url + link,
+                            'file_path_to_save': file_path,
+                            'data0': items_temp[0].get_text(),
+                            'data1': items_temp[1].get_text(),
+                            'filename': item_temp.get_text(),
+                            'link': link,
+                            'main_url': url,
+                            'click': click,
+                            'db_name': 'firmwaredatabase.db',
+                            'is_file_download': False,
+                            'folder': DATA['file_paths']['download_files_path']
+                        }
+                        if link == "javascript:;":
                             click = item_temp.findChild("a").get("onclick")
-                            print(click)
-                        file_path = os.path.join(dest, item_temp.get_text())
-                        download_file(base_url + link, file_path, items_temp[0].get_text(), items_temp[1].get_text(), folder, item_temp.get_text(), link, url, click)
+                            file_path = os.path.join(parent_dir, DATA['file_paths']['download_files_path'], item_temp.get_text(), item_temp.get_text())
+                            arg_data['file_path_to_save'] = file_path
+                            download_file(arg_data)
+                        else:
+                            file_path = os.path.join(parent_dir, DATA['file_paths']['download_files_path'], item_temp.get_text())
+                            arg_data['file_path_to_save'] = file_path
+                            download_file(arg_data)
                     sub_data.append(item_temp.get_text())
                 data.append(sub_data)
 
-if __name__ == "__main__":
-    paths = directories_link
-    base_url = "https://www.gegridsolutions.com"
+def directories_link(url, base_url):
+    try:
+        cont = requests.get(url)
+        soup = BeautifulSoup(cont.text, 'html.parser')
+        items = soup.find_all("p", style="MARGIN-TOP: 0px; PADDING-LEFT: 15px")
+        for item in items:
+            items_temp = item.find_all("a")
+            for item_temp in items_temp:
+                link = item_temp.get("href")
+                if str(link).find("software.asp?directory=") != -1:
+                    links.append(base_url + "/communications/mds/" + link)
+                elif str(link).find("/Communications/MDS/PulseNET_Download.aspx"):
+                    links.append(base_url + "/Communications/MDS/PulseNET_Download.aspx")
+                elif str(link).find("/app/resources.aspx?prod=vistanet&type=7"):
+                    links.append(base_url + "/app/resources.aspx?prod=vistanet&type=7")
+    except Exception as er_:
+        logger.error('<%s> is invalid', url)
+        raise ValueError("%s" % er_) from er_
 
-    folder = 'File_system'
-
+def main():
+    logger.info('<module GE> -> Download Module started at <%s>', datetime.now())
+    base_url = DATA['ge']['url']
+    directories_link(base_url + '/communications/mds/software.asp', base_url)
+    paths = links
     for path in paths:
-        url = base_url + path
-        scraper_parse(url, folder, base_url)
+        url = path
+        scraper_parse(url, base_url)
+
+if __name__ == "__main__":
+    main()

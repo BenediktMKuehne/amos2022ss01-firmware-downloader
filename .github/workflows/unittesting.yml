@@ -11,7 +11,6 @@ on:
   pull_request:
     branches:
       - '**'
-      -
       # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -23,28 +22,30 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: [ "3.9", "3.10" ]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it ,,
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-          uses: actions/setup-python@v3
-          with:
-            python-version: ${{ matrix.python-version }}
-            architecture: x64
-            cache: 'pip'
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+          cache: 'pip'
       - name: Install dependencies
         run: |
+            python3 -m pip install github-actions-test
             python3 -m pip install --upgrade pip
             python3 -m pip install pylint
+            python3 -m pip install pytest
             # The requirements file is mandatory to be present the parent repository
             if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
       # Runs a single command using the runners shell
-      - name: Run a Test module for Ge
+      - name: Run a Unit Test modules
         run: |
-          ./unit_tests/testscript.sh
-
-  
+          pwd
+          pipenv install --dev
+          chmod u+r+x run_tests.sh
+          ./run_tests.sh

@@ -1,8 +1,10 @@
-import os
-import sys
 import inspect
 import json
+import os
+import sys
+import platform
 import time
+import unittest
 import requests
 import urllib3
 import wget
@@ -11,47 +13,32 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-
-from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
-from utils.metadata_extractor import metadata_extractor
-from utils.modules_check import vendor_field
-from utils.Logs import get_logger
-
-logger = get_logger("vendors.foscam")
-sys.path.append(os.path.abspath(os.path.join('.', '')))
+from utils.chromium_downloader import ChromiumDownloader
+# from vendors.foscam import FoscamHomeSecurity
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
+sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 
-class FoscamHomeSecurity:
+class FoscamHomeSecurityTest(unittest.TestCase):
 
-    def __init__(self):
+    def setUp(self):
         with open(os.path.join(parent_dir, 'config', 'config.json'), 'rb') as json_file:
             json_data = json.loads(json_file.read())
-            dummy_foscam_data = json_data['foscam']
-            if vendor_field('foscam', 'user'):
-                self.email = vendor_field('foscam', 'user')
-            else:
-                logger.error('<module : foscam > -> user not present')
-                raise Exception("< module :foscam> user can't be found")
-            if vendor_field('foscam', 'password'):
-                self.password = vendor_field('foscam', 'password')
-            else:
-                logger.error('<module : foscam > -> password not present')
-                raise Exception("< module :foscam> password can't be found")
-            if vendor_field('foscam', 'url') is False:
-                logger.error('<module : foscam > -> url not present')
-                self.url = "https://www.foscam.com/downloads/index.html"
-            else:
-                self.url = vendor_field('foscam', 'url')
-            self.down_file_path = json_data['file_paths']['download_files_path']
+            foscam_data = json_data['foscam']
+            self.email = foscam_data['user']
+            self.password = foscam_data['password']
+            self.url = foscam_data['url']
+            self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe"
+        self.system = platform.system().lower()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe" if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver"
         opt = Options()
         opt.add_experimental_option("prefs", {
             "download.default_directory": r"{}\{}\Foscam".format(self.path, self.down_file_path),
@@ -59,6 +46,9 @@ class FoscamHomeSecurity:
             "download.directory_upgrade": True,
             "safebrowsing.enabled": True
         })
+        opt.add_argument('--remote-debugging-port=9222')
+        # opt.binary_location = '/usr/bin/google-chrome'
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace("\\", '/')
         self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
             'Fwfileid': '',
@@ -82,12 +72,14 @@ class FoscamHomeSecurity:
             'Startedanalysisonembark': ''
         }
 
-    def homepage(self):
+    def test_homepage(self):
         # The homepage is used to navigate to the main page of downloads
         driver = self.driver
         driver.get(self.url)
         driver.implicitly_wait(10)  # seconds
         driver.maximize_window()
+        print(driver.title)
+        self.assertEqual("Foscam Support - FAQs", driver.title, msg="Homepage testcase passed")
 
     def firmware_collector(self):
         driver = self.driver
@@ -123,30 +115,31 @@ class FoscamHomeSecurity:
         print(in_brow_cookies)
         return in_brow_cookies
 
-    def firmware_downloader(self):
+    def test_firmware_downloader(self):
         driver = self.driver
+        driver.get(self.url)
+        driver.maximize_window()
         fw_coll_data = list(set(self.firmware_collector()))
         for iter_num in range(2, 8):
+            time.sleep(5)
             driver.find_element(
                 By.XPATH,
                 ".//a[contains(@onclick,'gotopage({})')]//"
                 "img[contains(@src, '/Public/Home/images/faq/02.png')]".format(iter_num)).click()
             fw_coll_data.extend(list(set(self.firmware_collector())))
         print(len(fw_coll_data), fw_coll_data)
-        for href_url in fw_coll_data:
+        for href_url in fw_coll_data[0:1]:
             driver.get(href_url)
             print(href_url)
             try:
                 if driver.find_element(By.XPATH, ".//table").is_displayed():
                     rows = driver.find_elements(By.XPATH, ".//tbody//tr")
                     web_file_name = driver.find_element(By.XPATH, ".//div[@class='download_list_icon']//span").text
-                    count = 0
                     for row in range(2, len(rows) + 1):
                         version = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[1]".format(row)).text
                         build_date = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[2]".format(row)).text
                         size = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[3]".format(row)).text
                         release_notes = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[4]".format(row)).text
-                        release_notes = release_notes.replace("'", '')
                         attention = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[5]".format(row)).text
                         down_link = driver.find_element(By.XPATH, ".//tbody//tr[{}]//td[6]//a".format(row)) \
                             .get_attribute('href')
@@ -156,28 +149,24 @@ class FoscamHomeSecurity:
                         api_url = f'https://www.foscam.com/downloads/file.html?cate=firmware&id={down_id}'
                         brow_cookies = self.clean_cookies(driver.get_cookies())
                         file_name = self.url_call_file_name(api_url, brow_cookies)
-                        local_file_location = fr"{self.path}\{self.down_file_path}\Foscam\{str(f'{file_name}')}"
+                        local_file_location = fr"{parent_dir}\unit_tests\{self.down_file_path}\Foscam\{str(f'{file_name}')}"
                         check_path = r"{}\{}\Foscam".format(self.path, self.down_file_path).replace('\\', '/')
                         if not os.path.exists(check_path):
                             print(os.path.isfile(check_path))
                             os.mkdir(check_path)
 
-                        if not os.path.isfile(str(local_file_location.replace("\\", "/"))) and file_name is not None:
-                            wget.download(down_link, str(local_file_location.replace("\\", "/")))
+                        if not os.path.isfile(local_file_location.replace("\\", "/")) and file_name is not None:
+                            print("The file is not present in the system so the file %s will be downloaded to path %s",
+                                  file_name, local_file_location)
+                            wget.download(down_link, local_file_location)
 
-                        logger.info('Foscam: Downloading Firmware %s, Version  %s', down_link, version)
-                        logger.info("Downloading %s and saving as %s ", api_url,
-                                    str(local_file_location.replace("\\", "/")))
                         while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
                                 file_name is not None:
                             time.sleep(5)
 
-                        count += 1
-                        logger.debug('digit: %s', count)
+                        self.assertTrue(local_file_location, msg="Location exists")
                         dbdict_carrier = {}
                         db_used = Database()
-                        logger.debug('<%s> <%s> <%s> <%s> <%s>', web_file_name, 'Foscam', web_file_name, version,
-                                     build_date)
                         for key in self.dbdict:
                             if key == "Manufacturer":
                                 dbdict_carrier[key] = "Foscam"
@@ -189,20 +178,6 @@ class FoscamHomeSecurity:
                                 dbdict_carrier[key] = version
                             elif key == "Releasedate":
                                 dbdict_carrier[key] = build_date
-                            elif key == "Filesize":
-                                if local_file_location.split("\\")[-1] is not None and file_name is not None:
-                                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/"))
-                                                                             )["File Size"]
-                                else:
-                                    dbdict_carrier[key] = ''
-
-                            elif key == "Lasteditdate":
-                                if local_file_location.split("\\")[-1] is not None and file_name is not None:
-                                    dbdict_carrier[key] = metadata_extractor(str(local_file_location.replace("\\", "/"))
-                                                                             )["Last Edit Date"]
-                                else:
-                                    dbdict_carrier[key] = ''
-
                             elif key == "Fwadddata":
                                 dbdict_carrier[key] = r'{}'.format(str(add_desc))
                             elif key == "Fwdownlink":
@@ -214,39 +189,29 @@ class FoscamHomeSecurity:
                                     dbdict_carrier[key] = get_hash_value(str(local_file_location.replace("\\", "/")))
                                 else:
                                     dbdict_carrier[key] = ''
-
                             else:
                                 dbdict_carrier[key] = ''
-
                         db_used.insert_data(dbdict_carrier)
+                        self.assertTrue(dbdict_carrier, msg="data inserted")
             except NoSuchElementException:
-                logger.error('The firmware is not available for: %s', href_url)
-                # dbdict_carrier = {}
-                # db_used = Database()
-                # for key in self.dbdict:
-                #     if key == "Manufacturer":
-                #         dbdict_carrier[key] = "Foscam"
-                #     elif key == "Fwadddata":
-                #         dbdict_carrier[key] = fr"The Webpage does not contain any Firmware downloads,\
-                #         So this page is skipped, The Firmware crawled page is: {href_url}"
-                #     else:
-                #         dbdict_carrier[key] = ''
-                # db_used.insert_data(dbdict_carrier)
+                dbdict_carrier = {}
+                db_used = Database()
+                for key in self.dbdict:
+                    if key == "Manufacturer":
+                        dbdict_carrier[key] = "Foscam"
+                    elif key == "Fwadddata":
+                        dbdict_carrier[key] = fr"The Webpage doesn't contain any Firmware downloads,\
+                        So this page is skipped, The Firmware crawled page is: {href_url}"
+                    else:
+                        dbdict_carrier[key] = ''
+                db_used.insert_data(dbdict_carrier)
 
-    def close_browser(self):
+    def tearDown(self):
         # At the end of the program, the function will close the Chrome browser
-        driver = self.driver
         time.sleep(10)
-        driver.quit()
+        self.driver.quit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ChromiumDownloader().executor()
-    fos = FoscamHomeSecurity()
-    try:
-        fos.homepage()
-        fos.firmware_downloader()
-    except NoSuchElementException as error:
-        print(error)
-    finally:
-        fos.close_browser()
+    unittest.main()
