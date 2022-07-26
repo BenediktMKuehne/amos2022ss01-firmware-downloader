@@ -192,17 +192,19 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                         db_used.insert_data(dbdict_carrier)
                         self.assertTrue(dbdict_carrier, msg="data inserted")
             except NoSuchElementException:
-                dbdict_carrier = {}
-                db_used = Database()
-                for key in self.dbdict:
-                    if key == "Manufacturer":
-                        dbdict_carrier[key] = "Foscam"
-                    elif key == "Fwadddata":
-                        dbdict_carrier[key] = fr"The Webpage doesn't contain any Firmware downloads,\
-                        So this page is skipped, The Firmware crawled page is: {href_url}"
-                    else:
-                        dbdict_carrier[key] = ''
-                db_used.insert_data(dbdict_carrier)
+                # dbdict_carrier = {}
+                # db_used = Database()
+                # for key in self.dbdict:
+                #     if key == "Manufacturer":
+                #         dbdict_carrier[key] = "Foscam"
+                #     elif key == "Fwadddata":
+                #         dbdict_carrier[key] = fr"The Webpage doesn't contain any Firmware downloads,\
+                #         So this page is skipped, The Firmware crawled page is: {href_url}"
+                #     else:
+                #         dbdict_carrier[key] = ''
+                # db_used.insert_data(dbdict_carrier)
+                print(fr"The Webpage doesn't contain any Firmware downloads,\
+                        So this page is skipped, The Firmware crawled page is: {href_url}")
 
     def tearDown(self):
         # At the end of the program, the function will close the Chrome browser
