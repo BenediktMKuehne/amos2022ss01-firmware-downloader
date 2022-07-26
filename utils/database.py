@@ -4,7 +4,6 @@ import sqlite3
 import uuid
 import inspect
 from utils.Logs import get_logger
-
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -112,7 +111,6 @@ class Database:
             with open(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt', 'r', encoding="utf-8") as uuid_read:
                 data = uuid_read.read()
             with open(fr'{parent_dir}/utils/database_txt_file/uuid_generated.txt', 'a', encoding="utf-8") as uuid_file:
-
                 # print(data.split('\n'))
                 if uuid_id not in data.split('\n'):
                     logger.info("The data is not present with respect to Fwfileid so, the data will be added into DB")
