@@ -3,6 +3,7 @@ import sys
 import inspect
 import json
 import time
+import platform
 import requests
 import urllib3
 import wget
@@ -11,17 +12,14 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
 from utils.metadata_extractor import metadata_extractor
 from utils.modules_check import vendor_field
 from utils.Logs import get_logger
-
-logger = get_logger("vendors.foscam")
 sys.path.append(os.path.abspath(os.path.join('.', '')))
-
+logger = get_logger("vendors.foscam")
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
@@ -51,7 +49,9 @@ class FoscamHomeSecurity:
                 self.url = vendor_field('foscam', 'url')
             self.down_file_path = json_data['file_paths']['download_files_path']
         self.path = os.getcwd()
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe"
+        self.system = platform.platform().lower()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace('\\', '/') if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver".replace('\\', '/')
         opt = Options()
         opt.add_experimental_option("prefs", {
             "download.default_directory": r"{}\{}\Foscam".format(self.path, self.down_file_path),
