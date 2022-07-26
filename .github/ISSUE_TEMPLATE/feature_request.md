@@ -18,6 +18,7 @@ assignees: ''
 * ...
 
 ## Definition of done (DoD)
+* Conform to error tolerant environment standards
 * Code is complete
 * Code is uploaded in GitHub
 * Fulfills the acceptance criteria in the User Story
