@@ -17,4 +17,4 @@ sudo chmod +rwx /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-
 sudo chmod +rwx /home/runner/work/amos2022ss01-firmware-downloader/amos2022ss01-firmware-downloader/utils/chromedriver
 
 # run all unit tests
-python -m pytest --import-mode=append unit_tests/honeywell_unit_test.py
+python -m pytest --import-mode=append unit_tests/*
