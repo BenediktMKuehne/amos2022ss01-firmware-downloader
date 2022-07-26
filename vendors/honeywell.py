@@ -7,10 +7,10 @@ import re
 import time
 import urllib.parse
 import zipfile
+import platform
 import requests
 import urllib3
 import wget
-import platform
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains

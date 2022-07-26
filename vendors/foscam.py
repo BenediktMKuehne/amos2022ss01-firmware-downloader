@@ -3,10 +3,10 @@ import sys
 import inspect
 import json
 import time
+import platform
 import requests
 import urllib3
 import wget
-import platform
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
