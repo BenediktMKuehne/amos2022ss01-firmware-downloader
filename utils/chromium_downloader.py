@@ -17,6 +17,7 @@ class ChromiumDownloader:
     def __init__(self):
         self.url = 'https://chromedriver.storage.googleapis.com'
         self.latest_release_url = 'https://chromedriver.storage.googleapis.com/LATEST_RELEASE'
+        self.system = platform.platform().lower()
 
     def load_and_extract(self):
         """ The fn is used to trigger the api to get the latest version, then it allows to trigger
@@ -28,9 +29,8 @@ class ChromiumDownloader:
             'mac_m1': 'chromedriver_mac64_m1.zip',
             'win': 'chromedriver_win32.zip'
         }
-        system = platform.system().lower()
-        print(f"System running on {system}")
-        system = [item for item in sys_carrier if item in system.lower()][0]
+        print(f"System running on {self.system}")
+        system = [item for item in sys_carrier if item in self.system.lower()][0]
         download_url = "https://chromedriver.storage.googleapis.com/{}/{}".format(response, sys_carrier[system])
         print(parent_dir)
         print(response, download_url)
@@ -39,14 +39,27 @@ class ChromiumDownloader:
                                                                         chromedriver.zip'.replace('\\', '/'))else None)
         with zipfile.ZipFile(chromium_zip, 'r') as zip_ref:
             zip_ref.extractall(fr'{parent_dir}\utils'.replace('\\', '/'))
-        if os.path.isfile(fr'{parent_dir}\utils\chromedriver.exe'.replace('\\', '/')):
+        if os.path.isfile(fr'{parent_dir}\utils\chromedriver.exe'.replace('\\', '/')) and 'win' in self.system:
             print(fr'file found and is at {parent_dir}\utils\chromedriver.exe'.replace('\\', '/'))
+
+        if os.path.isfile(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/')) and 'win' not in self.system:
+            print(fr'file found and is at {parent_dir}\utils\chromedriver'.replace('\\', '/'))
+            os.chmod(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/'), 777)
+
         os.remove(chromium_zip)
 
     def executor(self):
         # Checksum for chromedriver
-        if os.path.exists(fr'{parent_dir}\utils\chromedriver.exe'.replace('\\', '/')):
+        if os.path.exists(fr'{parent_dir}\utils\chromedriver.exe'.replace('\\', '/')) and 'win' in self.system:
             os.remove(fr'{parent_dir}\utils\chromedriver.exe'.replace('\\', '/'))
-        if "chromedriver.exe" not in os.listdir(fr'{parent_dir}\utils'.replace('\\', '/')):
-            print("chromedriver.exe is not present in local path, so installing chromedriver")
+
+        if os.path.exists(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/')) and 'win' not in self.system:
+            os.remove(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/'))
+
+        if "chromedriver.exe" not in os.listdir(fr'{parent_dir}\utils'.replace('\\', '/')) and 'win' in self.system:
+            print("chromedriver.exe is not present in local path, so installing chromedriver.exe")
+            self.load_and_extract()
+
+        if "chromedriver" not in os.listdir(fr'{parent_dir}\utils'.replace('\\', '/')) and 'win' not in self.system:
+            print("chromedriver is not present in local path, so installing chromedriver")
             self.load_and_extract()

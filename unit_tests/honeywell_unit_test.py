@@ -11,11 +11,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.service import Service
-
 from utils.database import Database
 from utils.metadata_extractor import get_hash_value
 from utils.chromium_downloader import ChromiumDownloader
-
 sys.path.append(os.path.abspath(os.path.join('.', '')))
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
@@ -33,9 +31,9 @@ class WebCode(unittest.TestCase):
             self.url = honeywell_data['url']
             self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
-        self.system = platform.system().lower()
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe" if 'win' in self.system else \
-            fr"{parent_dir}\utils\chromedriver"
+        self.system = platform.platform().lower()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace('\\', '/') if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver".replace('\\', '/')
         self.db_name = 'test_firmwaredatabase.db'
         opt = Options()
         opt.headless = True

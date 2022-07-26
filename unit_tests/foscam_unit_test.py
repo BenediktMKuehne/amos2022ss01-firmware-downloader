@@ -17,12 +17,11 @@ from utils.database import Database
 from utils.metadata_extractor import get_hash_value
 from utils.chromium_downloader import ChromiumDownloader
 # from vendors.foscam import FoscamHomeSecurity
-
+sys.path.append(os.path.abspath(os.path.join('.', '')))
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
-sys.path.append(os.path.abspath(os.path.join('.', '')))
 
 
 class FoscamHomeSecurityTest(unittest.TestCase):
@@ -36,9 +35,9 @@ class FoscamHomeSecurityTest(unittest.TestCase):
             self.url = foscam_data['url']
             self.down_file_path = json_data['file_paths']['download_test_files_path']
         self.path = os.getcwd()
-        self.system = platform.system().lower()
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe" if 'win' in self.system else \
-            fr"{parent_dir}\utils\chromedriver"
+        self.system = platform.platform().lower()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace('\\', '/') if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver".replace('\\', '/')
         opt = Options()
         opt.add_experimental_option("prefs", {
             "download.default_directory": r"{}\{}\Foscam".format(self.path, self.down_file_path),
@@ -48,7 +47,6 @@ class FoscamHomeSecurityTest(unittest.TestCase):
         })
         opt.add_argument('--remote-debugging-port=9222')
         # opt.binary_location = '/usr/bin/google-chrome'
-        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace("\\", '/')
         self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path), options=opt)
         self.dbdict = {
             'Fwfileid': '',
@@ -150,15 +148,15 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                         brow_cookies = self.clean_cookies(driver.get_cookies())
                         file_name = self.url_call_file_name(api_url, brow_cookies)
                         local_file_location = fr"{parent_dir}\unit_tests\{self.down_file_path}\Foscam\{str(f'{file_name}')}"
-                        check_path = r"{}\{}\Foscam".format(self.path, self.down_file_path).replace('\\', '/')
+                        check_path = fr"{parent_dir}\unit_tests\{self.down_file_path}\Foscam".replace('\\', '/')
                         if not os.path.exists(check_path):
-                            print(os.path.isfile(check_path))
-                            os.mkdir(check_path)
+                            print(f'path does exists: {os.path.exists(check_path)}, so this will be created.')
+                            os.makedirs(check_path)
 
                         if not os.path.isfile(local_file_location.replace("\\", "/")) and file_name is not None:
                             print("The file is not present in the system so the file %s will be downloaded to path %s",
                                   file_name, local_file_location)
-                            wget.download(down_link, local_file_location)
+                            wget.download(down_link, local_file_location.replace("\\", "/"))
 
                         while not os.path.isfile(str(local_file_location.replace("\\", "/"))) and \
                                 file_name is not None:
@@ -194,17 +192,19 @@ class FoscamHomeSecurityTest(unittest.TestCase):
                         db_used.insert_data(dbdict_carrier)
                         self.assertTrue(dbdict_carrier, msg="data inserted")
             except NoSuchElementException:
-                dbdict_carrier = {}
-                db_used = Database()
-                for key in self.dbdict:
-                    if key == "Manufacturer":
-                        dbdict_carrier[key] = "Foscam"
-                    elif key == "Fwadddata":
-                        dbdict_carrier[key] = fr"The Webpage doesn't contain any Firmware downloads,\
-                        So this page is skipped, The Firmware crawled page is: {href_url}"
-                    else:
-                        dbdict_carrier[key] = ''
-                db_used.insert_data(dbdict_carrier)
+                # dbdict_carrier = {}
+                # db_used = Database()
+                # for key in self.dbdict:
+                #     if key == "Manufacturer":
+                #         dbdict_carrier[key] = "Foscam"
+                #     elif key == "Fwadddata":
+                #         dbdict_carrier[key] = fr"The Webpage doesn't contain any Firmware downloads,\
+                #         So this page is skipped, The Firmware crawled page is: {href_url}"
+                #     else:
+                #         dbdict_carrier[key] = ''
+                # db_used.insert_data(dbdict_carrier)
+                print(fr"The Webpage doesn't contain any Firmware downloads,\
+                        So this page is skipped, The Firmware crawled page is: {href_url}")
 
     def tearDown(self):
         # At the end of the program, the function will close the Chrome browser
