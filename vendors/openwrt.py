@@ -3,16 +3,18 @@ import json
 import os
 import sys
 import time
+import platform
 import requests
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 from utils.chromium_downloader import ChromiumDownloader
 from utils.database import Database
 from utils.metadata_extractor import metadata_extractor
 from utils.modules_check import vendor_field
 from utils.Logs import get_logger
-
+sys.path.append(os.path.abspath(os.path.join('.', '')))
 logger = get_logger("vendors.openwrt")
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
@@ -43,7 +45,10 @@ class Openwrt:
                 logger.info('<module : openwrt > -> using hardcode url')
             self.down_file_path = json_data['file_paths']['download_files_path']
         self.path = os.getcwd()
-        self.driver = webdriver.Chrome()
+        self.system = platform.platform().lower()
+        self.chrome_path = fr"{parent_dir}\utils\chromedriver.exe".replace('\\', '/') if 'win' in self.system else \
+            fr"{parent_dir}\utils\chromedriver".replace('\\', '/')
+        self.driver = webdriver.Chrome(service=Service(executable_path=self.chrome_path))
         self.dbdict = {
             'Fwfileid': '',
             'Fwfilename': '',
