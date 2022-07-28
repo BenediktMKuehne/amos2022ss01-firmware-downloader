@@ -45,13 +45,17 @@ Use the installer.sh to install project.
 
 ``` First of all follow the steps to install and run embark (https://github.com/e-m-b-a/embark) in your kali linux. ```
 
-Then Run Follow Command in the root folder of your project:
+Then Run Following Command in the root folder of embark project:
 
 ```bash
 sudo bash ./installer.sh
 ```
 
 ## Run
+
+``` First of all register a user on Embark with username: test and password: test. You can also change username and password in config/config.json fileif you want. ```
+
+Then Run Following Command in the root folder of project:
 
 ```bash
 python main.py
