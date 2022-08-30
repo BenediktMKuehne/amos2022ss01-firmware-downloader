@@ -50,15 +50,15 @@ class ChromiumDownloader:
 
     def executor(self):
         # Checksum for chromedriver
-        if os.path.exists(fr'{parent_dir}\utils\chromedriver.exe'.replace('\\', '/')) and 'win' in self.system:
-            os.remove(fr'{parent_dir}\utils\chromedriver.exe'.replace('\\', '/'))
+        #if os.path.exists(fr'{parent_dir}\utils\chromedriver.exe'.replace('\\', '/')) and 'win' in self.system:
+        #    os.remove(fr'{parent_dir}\utils\chromedriver.exe'.replace('\\', '/'))
 
-        if os.path.exists(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/')) and 'win' not in self.system:
-            os.remove(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/'))
+        # if os.path.exists(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/')) and 'win' not in self.system:
+        #    os.remove(fr'{parent_dir}\utils\chromedriver'.replace('\\', '/'))
 
-        if "chromedriver.exe" not in os.listdir(fr'{parent_dir}\utils'.replace('\\', '/')) and 'win' in self.system:
-            print("chromedriver.exe is not present in local path, so installing chromedriver.exe")
-            self.load_and_extract()
+        # if "chromedriver.exe" not in os.listdir(fr'{parent_dir}\utils'.replace('\\', '/')) and 'win' in self.system:
+        #    print("chromedriver.exe is not present in local path, so installing chromedriver.exe")
+        #    self.load_and_extract()
 
         if "chromedriver" not in os.listdir(fr'{parent_dir}\utils'.replace('\\', '/')) and 'win' not in self.system:
             print("chromedriver is not present in local path, so installing chromedriver")
